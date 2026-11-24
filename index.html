@@ -36,6 +36,7 @@
       padding-bottom: 92px;
     }
 
+
     .right-account-status-col {
       display: flex;
       flex-direction: column;
@@ -780,6 +781,7 @@
       border-radius: 12px;
     }
 
+
     .copy-pix-btn {
       margin-top: 10px;
       width: 100%;
@@ -1018,7 +1020,7 @@
 
   <!-- CATÁLOGO DE PRODUTOS (2 COLUNAS) -->
   <main class="container">
-    <!-- AVISO DE INSTALAÇÃO APENAS NA PRIMEIRA VISITA -->
+    <!-- AVISO DE INSTALAÇÃO APENAS NA PRIMEIRA VEZ -->
     <div id="installBanner" class="install-banner">
       <div>
         <strong>📲 Instalar Mercadinho JM</strong><br />
@@ -1467,21 +1469,26 @@
       const sunOpenT = storeConfig.sunOpenTime || weekOpenT;
       const sunCloseT = storeConfig.sunCloseTime || weekCloseT;
 
-      const parts = [];
-      const hasWeek = [1, 2, 3, 4, 5].some(d => days.includes(d));
-      if (hasWeek) {
+      const todayDay = new Date().getDay();
+      const isWeekendToday = (todayDay === 0 || todayDay === 6);
+
+      if (!isWeekendToday) {
+        const hasWeek = [1, 2, 3, 4, 5].some(d => days.includes(d));
+        if (!hasWeek) return 'Sem horário na semana';
         const weekNames = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex' };
         const activeWeek = [1, 2, 3, 4, 5].filter(d => days.includes(d));
         const wLabel = activeWeek.length === 5 ? 'Seg–Sex' : activeWeek.map(d => weekNames[d]).join(',');
-        parts.push(`${wLabel} ${weekOpenT}–${weekCloseT}`);
+        return `${wLabel} • ${weekOpenT} às ${weekCloseT}`;
       }
+
+      const weekendParts = [];
       if (days.includes(6)) {
-        parts.push(`Sáb ${satOpenT}–${satCloseT}`);
+        weekendParts.push(`Sáb ${satOpenT}–${satCloseT}`);
       }
       if (days.includes(0)) {
-        parts.push(`Dom ${sunOpenT}–${sunCloseT}`);
+        weekendParts.push(`Dom ${sunOpenT}–${sunCloseT}`);
       }
-      return parts.length ? parts.join(' • ') : 'Fechado';
+      return weekendParts.length ? weekendParts.join(' • ') : 'Sem horário no fim de semana';
     }
 
     function updateStoreHoursUI() {
@@ -1865,7 +1872,9 @@
         storeConfig = { ...storeConfig, ...newCfg };
         updateStoreHoursUI();
         updateShippingBanner();
-        saveCart();
+        updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
         closeModal('adminModal');
         showToast('Horário, Pix e entrega salvos!');
       } catch (err) {
@@ -2198,7 +2207,9 @@
       if (existing) existing.qtd++;
       else cart.push({ ...prod, qtd: 1 });
 
-      saveCart();
+      updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
       showToast(`${prod.nome} adicionado!`);
     };
 
@@ -2207,7 +2218,9 @@
       if (!item) return;
       item.qtd += delta;
       if (item.qtd <= 0) cart = cart.filter(i => i.id !== id);
-      saveCart();
+      updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
       renderCartModal();
     };
 
@@ -2433,7 +2446,9 @@
           : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
         cart = [];
-        saveCart();
+        updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
         closeModal('cartModal');
         showToast('Pedido salvo! Abrindo WhatsApp do Mercadinho JM...');
         window.open(waUrl, '_blank');
