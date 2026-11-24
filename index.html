@@ -36,6 +36,128 @@
       padding-bottom: 92px;
     }
 
+
+    .store-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #065f46;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      margin-top: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .store-status-pill.closed {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .store-hours-sub {
+      font-size: 0.68rem;
+      color: #e2e8f0;
+      margin-top: 2px;
+    }
+
+    .product-card.hidden-item {
+      opacity: 0.65;
+      border: 1.5px dashed #94a3b8;
+      background: #f1f5f9;
+    }
+
+    .hidden-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #475569;
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 8px;
+      z-index: 2;
+      text-transform: uppercase;
+    }
+
+    .admin-card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .edit-item-btn {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 8px 6px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .toggle-hide-btn {
+      background: #f59e0b;
+      color: #111;
+      border: none;
+      padding: 8px 6px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .toggle-hide-btn.is-hidden {
+      background: #10b981;
+      color: #fff;
+    }
+
+    .days-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .day-check-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .day-check-label input {
+      width: auto;
+      margin: 0;
+    }
+
+    .closed-warning-banner {
+      display: none;
+      background: #fee2e2;
+      border: 1.5px solid #ef4444;
+      color: #991b1b;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .closed-warning-banner.show {
+      display: block;
+    }
+
     /* HEADER FIXO COM CANVAS */
     .fixed-header {
       position: fixed;
@@ -778,6 +900,8 @@
           <div>
             <h1>Mercadinho JM</h1>
             <div class="brand-slogan">O melhor lugar para comprar</div>
+            <div id="storeStatusPill" class="store-status-pill">🟢 Aberto agora</div>
+            <div id="storeHoursSub" class="store-hours-sub">Seg a Dom • 07:00 às 21:00</div>
           </div>
         </div>
         <div class="header-actions">
@@ -841,6 +965,10 @@
       </div>
     </div>
 
+    <div id="closedWarningBanner" class="closed-warning-banner">
+      🔴 No momento o Mercadinho JM está fechado. Confira nosso horário de funcionamento no topo!
+    </div>
+
     <div id="shippingBanner" class="shipping-banner">
       🚚 Entrega grátis a partir de R$ 30,00 em compras!
     </div>
@@ -851,7 +979,7 @@
   </main>
 
   <!-- BARRA DO CARRINHO -->
-  <div class="cart-bar" onclick="openModal('cartModal')">
+  <div class="cart-bar" id="cartBottomBar" onclick="openModal('cartModal')">
     <div class="cart-info">
       <span class="cart-badge" id="cartCount">0</span>
       <span style="font-weight: 700;">Ver Carrinho</span>
@@ -988,8 +1116,9 @@
         <button class="close-btn" onclick="closeModal('adminModal')">✕</button>
       </div>
 
-      <!-- AÇÃO 1: CADASTRAR PRODUTO -->
-      <form id="adminProdForm" onsubmit="addProduct(event)">
+      <!-- AÇÃO 1: CADASTRAR / EDITAR PRODUTO -->
+      <form id="adminProdForm" onsubmit="saveProduct(event)">
+        <input type="hidden" id="editProdId" value="" />
         <div class="form-group">
           <label>Nome do Produto</label>
           <input type="text" id="prodName" required placeholder="Ex: Arroz Branco 5kg" />
@@ -1019,6 +1148,10 @@
           <input type="checkbox" id="prodPromo" style="width: auto;" />
           <label for="prodPromo" style="margin: 0;">Destacar em Promoções 🔥</label>
         </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="prodHidden" style="width: auto;" />
+          <label for="prodHidden" style="margin: 0;">Ocultar produto (item em falta) 🙈</label>
+        </div>
         <button type="submit" id="prodSubmitBtn" class="submit-btn">Salvar Produto no Catálogo</button>
       </form>
 
@@ -1027,8 +1160,41 @@
         <div id="ordersListContainer">Carregando pedidos...</div>
       </div>
 
-      <!-- AÇÃO 3: TELEFONE, CHAVE PIX ALEATÓRIA E ENTREGA GRÁTIS -->
+      <!-- AÇÃO 3: TELEFONE, PIX, ENTREGA E HORÁRIO DE FUNCIONAMENTO -->
       <form id="adminConfigForm" style="display: none;" onsubmit="saveStoreConfig(event)">
+        <div class="form-group">
+          <label>Situação do Mercadinho JM</label>
+          <select id="cfgManualStatus">
+            <option value="auto">🕒 Automático (pelos dias e horários abaixo)</option>
+            <option value="open">🟢 Forçar ABERTO agora (Trabalhando)</option>
+            <option value="closed">🔴 Forçar FECHADO agora</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Dias da Semana em Funcionamento</label>
+          <div class="days-selector" id="cfgDaysSelector">
+            <label class="day-check-label"><input type="checkbox" value="1" checked /> Seg</label>
+            <label class="day-check-label"><input type="checkbox" value="2" checked /> Ter</label>
+            <label class="day-check-label"><input type="checkbox" value="3" checked /> Qua</label>
+            <label class="day-check-label"><input type="checkbox" value="4" checked /> Qui</label>
+            <label class="day-check-label"><input type="checkbox" value="5" checked /> Sex</label>
+            <label class="day-check-label"><input type="checkbox" value="6" checked /> Sáb</label>
+            <label class="day-check-label"><input type="checkbox" value="0" checked /> Dom</label>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label>Abre às</label>
+            <input type="time" id="cfgOpenTime" required value="07:00" />
+          </div>
+          <div class="form-group">
+            <label>Fecha às</label>
+            <input type="time" id="cfgCloseTime" required value="21:00" />
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Telefone WhatsApp do Administrador (com DDD)</label>
           <input type="tel" id="cfgWhatsapp" required placeholder="Ex: 85999998888" />
@@ -1042,12 +1208,12 @@
           <input type="text" id="cfgPixMerchant" maxlength="25" required placeholder="Ex: MERCADINHO JM" />
         </div>
         <div class="form-group">
-          <label>Valor Mínimo para Entrega Grátis (R$)</label>
-          <input type="number" step="0.01" id="cfgFreeShippingMin" required placeholder="30.00" />
+          <label>Valor Mínimo para Entrega Grátis (R$) — <span style="color:#0b7a43;">0 = Sempre Grátis</span></label>
+          <input type="number" step="0.01" min="0" id="cfgFreeShippingMin" required placeholder="30.00 (ou 0 para grátis)" />
         </div>
         <div class="form-group">
-          <label>Taxa de Entrega abaixo do valor mínimo (R$)</label>
-          <input type="number" step="0.01" id="cfgDeliveryFee" required placeholder="5.00" />
+          <label>Taxa de Entrega abaixo do valor mínimo (R$) — <span style="color:#0b7a43;">0 = Grátis</span></label>
+          <input type="number" step="0.01" min="0" id="cfgDeliveryFee" required placeholder="5.00 (ou 0 para grátis)" />
         </div>
         <button type="submit" id="configSubmitBtn" class="submit-btn">Salvar Configurações da Loja</button>
       </form>
@@ -1106,8 +1272,74 @@
       pixKey: '',
       pixMerchant: 'MERCADINHO JM',
       freeShippingMin: 30,
-      deliveryFee: 5
+      deliveryFee: 5,
+      manualStatus: 'auto',
+      openDays: [0, 1, 2, 3, 4, 5, 6],
+      openTime: '07:00',
+      closeTime: '21:00'
     };
+
+    function isAdminLoggedIn() {
+      return Boolean(currentUser && currentUserProfile && currentUserProfile.role === 'admin');
+    }
+
+    function formatOpenDaysText(days) {
+      const names = { 0: 'Dom', 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb' };
+      const order = [1, 2, 3, 4, 5, 6, 0];
+      const active = order.filter(d => (days || []).includes(d));
+      if (active.length === 7) return 'Seg a Dom';
+      if (active.length === 6 && !active.includes(0)) return 'Seg a Sáb';
+      if (active.length === 5 && !active.includes(0) && !active.includes(6)) return 'Seg a Sex';
+      if (active.length === 0) return 'Sem dias ativos';
+      return active.map(d => names[d]).join(', ');
+    }
+
+    function computeStoreOpenState() {
+      const mode = storeConfig.manualStatus || 'auto';
+      if (mode === 'open') return true;
+      if (mode === 'closed') return false;
+
+      const now = new Date();
+      const day = now.getDay();
+      const openDays = Array.isArray(storeConfig.openDays) ? storeConfig.openDays : [0, 1, 2, 3, 4, 5, 6];
+      if (!openDays.includes(day)) return false;
+
+      const [oh, om] = (storeConfig.openTime || '07:00').split(':').map(Number);
+      const [ch, cm] = (storeConfig.closeTime || '21:00').split(':').map(Number);
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const openMins = (oh || 0) * 60 + (om || 0);
+      const closeMins = (ch || 0) * 60 + (cm || 0);
+
+      if (closeMins >= openMins) {
+        return nowMins >= openMins && nowMins < closeMins;
+      } else {
+        return nowMins >= openMins || nowMins < closeMins;
+      }
+    }
+
+    function updateStoreHoursUI() {
+      const pill = document.getElementById('storeStatusPill');
+      const sub = document.getElementById('storeHoursSub');
+      const closedBanner = document.getElementById('closedWarningBanner');
+
+      const isOpen = computeStoreOpenState();
+      const daysLabel = formatOpenDaysText(storeConfig.openDays);
+      const openT = storeConfig.openTime || '07:00';
+      const closeT = storeConfig.closeTime || '21:00';
+
+      if (pill) {
+        pill.classList.toggle('closed', !isOpen);
+        pill.textContent = isOpen ? '🟢 Aberto • Trabalhando' : '🔴 Fechado no momento';
+      }
+      if (sub) {
+        sub.textContent = `${daysLabel} • ${openT} às ${closeT}`;
+      }
+      if (closedBanner) {
+        closedBanner.classList.toggle('show', !isOpen && !isAdminLoggedIn());
+        closedBanner.textContent = `🔴 No momento o Mercadinho JM está fechado. Funcionamento: ${daysLabel}, das ${openT} às ${closeT}.`;
+      }
+      resizeCanvas();
+    }
 
     // =========================================================================
     // PROMPT DE INSTALAÇÃO APENAS NA PRIMEIRA VISITA DO CLIENTE
@@ -1311,17 +1543,62 @@
       const titleMap = {
         prod: 'Cadastrar Produto - Mercadinho JM',
         orders: 'Pedidos Recebidos - Mercadinho JM',
-        config: 'Telefone, Pix e Entrega - Mercadinho JM'
+        config: 'Horário, Pix e Entrega - Mercadinho JM'
       };
       document.getElementById('adminModalTitle').textContent = titleMap[section] || 'Admin - Mercadinho JM';
       document.getElementById('adminProdForm').style.display = section === 'prod' ? 'block' : 'none';
       document.getElementById('adminOrdersPanel').style.display = section === 'orders' ? 'block' : 'none';
       document.getElementById('adminConfigForm').style.display = section === 'config' ? 'block' : 'none';
 
+      if (section === 'prod') {
+        document.getElementById('adminProdForm').reset();
+        document.getElementById('editProdId').value = '';
+        document.getElementById('prodSubmitBtn').textContent = 'Salvar Produto no Catálogo';
+        previewProductImage('');
+      }
       if (section === 'config') fillConfigForm();
       if (section === 'orders') renderAdminOrders();
 
       document.getElementById('adminModal').classList.add('open');
+    };
+
+    window.openEditProductModal = (id) => {
+      if (!isAdminLoggedIn()) return;
+      const prod = allProducts.find(p => p.id === id);
+      if (!prod) return;
+
+      document.getElementById('adminModalTitle').textContent = 'Editar Produto - Mercadinho JM';
+      document.getElementById('adminProdForm').style.display = 'block';
+      document.getElementById('adminOrdersPanel').style.display = 'none';
+      document.getElementById('adminConfigForm').style.display = 'none';
+
+      document.getElementById('editProdId').value = prod.id;
+      document.getElementById('prodName').value = prod.nome || '';
+      document.getElementById('prodPrice').value = prod.preco ?? '';
+      document.getElementById('prodCategory').value = prod.categoria || 'Mercearia';
+      document.getElementById('prodImage').value = prod.imagem || '';
+      document.getElementById('prodPromo').checked = Boolean(prod.promocao);
+      document.getElementById('prodHidden').checked = Boolean(prod.oculto);
+      document.getElementById('prodSubmitBtn').textContent = 'Salvar Alterações do Produto';
+      previewProductImage(prod.imagem || '');
+
+      document.getElementById('adminModal').classList.add('open');
+    };
+
+    window.toggleHideProduct = async (id) => {
+      if (!isAdminLoggedIn()) return;
+      const prod = allProducts.find(p => p.id === id);
+      if (!prod) return;
+
+      const novoEstado = !Boolean(prod.oculto);
+      try {
+        await updateDoc(doc(db, "produtos", id), {
+          oculto: novoEstado
+        });
+        showToast(novoEstado ? `Produto "${prod.nome}" ocultado dos clientes.` : `Produto "${prod.nome}" visível novamente!`);
+      } catch (err) {
+        showToast('Erro ao alterar visibilidade: ' + err.message);
+      }
     };
 
     window.previewProductImage = (url) => {
@@ -1349,6 +1626,7 @@
       if (snap.exists()) {
         storeConfig = { ...storeConfig, ...snap.data() };
       }
+      updateStoreHoursUI();
       updateShippingBanner();
       if (document.getElementById('cartModal').classList.contains('open')) {
         renderCartModal();
@@ -1356,6 +1634,14 @@
     });
 
     function fillConfigForm() {
+      document.getElementById('cfgManualStatus').value = storeConfig.manualStatus || 'auto';
+      const activeDays = Array.isArray(storeConfig.openDays) ? storeConfig.openDays : [0, 1, 2, 3, 4, 5, 6];
+      document.querySelectorAll('#cfgDaysSelector input[type="checkbox"]').forEach(cb => {
+        cb.checked = activeDays.includes(Number(cb.value));
+      });
+      document.getElementById('cfgOpenTime').value = storeConfig.openTime || '07:00';
+      document.getElementById('cfgCloseTime').value = storeConfig.closeTime || '21:00';
+
       document.getElementById('cfgWhatsapp').value = storeConfig.whatsapp || '';
       document.getElementById('cfgPixKey').value = storeConfig.pixKey || '';
       document.getElementById('cfgPixMerchant').value = storeConfig.pixMerchant || 'MERCADINHO JM';
@@ -1365,30 +1651,48 @@
 
     window.saveStoreConfig = async (e) => {
       e.preventDefault();
-      if (!currentUserProfile || currentUserProfile.role !== 'admin') {
+      if (!isAdminLoggedIn()) {
         showToast('Apenas o administrador pode alterar essas configurações.');
         return;
       }
 
       setButtonLoading('configSubmitBtn', true, '⏳ Salvando...', 'Salvar Configurações da Loja');
 
+      const manualStatus = document.getElementById('cfgManualStatus').value || 'auto';
+      const openDays = Array.from(document.querySelectorAll('#cfgDaysSelector input[type="checkbox"]:checked')).map(cb => Number(cb.value));
+      const openTime = document.getElementById('cfgOpenTime').value || '07:00';
+      const closeTime = document.getElementById('cfgCloseTime').value || '21:00';
+
       const whatsapp = document.getElementById('cfgWhatsapp').value.replace(/\D/g, '');
       const pixKey = document.getElementById('cfgPixKey').value.trim();
       const pixMerchant = document.getElementById('cfgPixMerchant').value.trim() || 'MERCADINHO JM';
-      const freeShippingMin = parseFloat(document.getElementById('cfgFreeShippingMin').value) || 30;
-      const deliveryFee = parseFloat(document.getElementById('cfgDeliveryFee').value) || 0;
+
+      const rawMin = parseFloat(document.getElementById('cfgFreeShippingMin').value);
+      const rawFee = parseFloat(document.getElementById('cfgDeliveryFee').value);
+      const freeShippingMin = Number.isNaN(rawMin) ? 30 : Math.max(0, rawMin);
+      const deliveryFee = Number.isNaN(rawFee) ? 5 : Math.max(0, rawFee);
 
       try {
-        await setDoc(doc(db, "configuracoes", "mercadinho_jm"), {
+        const newCfg = {
+          manualStatus,
+          openDays,
+          openTime,
+          closeTime,
           whatsapp,
           pixKey,
           pixMerchant,
           freeShippingMin,
           deliveryFee
-        });
-        storeConfig = { whatsapp, pixKey, pixMerchant, freeShippingMin, deliveryFee };
+        };
+        await setDoc(doc(db, "configuracoes", "mercadinho_jm"), newCfg);
+        storeConfig = { ...storeConfig, ...newCfg };
+        updateStoreHoursUI();
         updateShippingBanner();
-        showToast('Telefone, Pix e regras de entrega salvos!');
+        updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
+        closeModal('adminModal');
+        showToast('Horário, Pix e entrega salvos!');
       } catch (err) {
         showToast('Erro ao salvar configurações: ' + err.message);
       } finally {
@@ -1404,19 +1708,22 @@
       const adminBadge = document.getElementById('adminBadgeBox');
       const adminBar = document.getElementById('adminQuickBar');
       const clientOrdersBtn = document.getElementById('clientOrdersBtn');
+      const cartBottomBar = document.getElementById('cartBottomBar');
 
       if (!currentUser) {
         authBtn.textContent = '👤 Entrar';
         adminBadge.style.display = 'none';
         adminBar.classList.remove('show');
         clientOrdersBtn.style.display = 'inline-flex';
-        resizeCanvas();
+        if (cartBottomBar) cartBottomBar.style.display = 'flex';
+        updateStoreHoursUI();
+        renderProducts();
         return;
       }
 
       const rawName = (currentUserProfile && currentUserProfile.nome) ? currentUserProfile.nome : currentUser.email;
       const firstName = rawName.split(' ')[0];
-      const isAdmin = currentUserProfile && currentUserProfile.role === 'admin';
+      const isAdmin = isAdminLoggedIn();
 
       authBtn.textContent = `Sair`;
 
@@ -1425,14 +1732,17 @@
         adminBadge.style.display = 'flex';
         adminBar.classList.add('show');
         clientOrdersBtn.style.display = 'none';
+        if (cartBottomBar) cartBottomBar.style.display = 'none';
       } else {
         adminBadge.style.display = 'none';
         adminBar.classList.remove('show');
         clientOrdersBtn.style.display = 'inline-flex';
+        if (cartBottomBar) cartBottomBar.style.display = 'flex';
         authBtn.textContent = `👋 ${firstName} (Sair)`;
       }
 
-      resizeCanvas();
+      updateStoreHoursUI();
+      renderProducts();
       updateClientNotificationDot();
     }
 
@@ -1555,38 +1865,56 @@
         </div>`;
     });
 
-    window.addProduct = async (e) => {
+    window.saveProduct = async (e) => {
       e.preventDefault();
-      if (!currentUserProfile || currentUserProfile.role !== 'admin') {
-        showToast('Apenas o administrador pode cadastrar produtos.');
+      if (!isAdminLoggedIn()) {
+        showToast('Apenas o administrador pode cadastrar ou editar produtos.');
         return;
       }
 
+      const editId = document.getElementById('editProdId').value.trim();
       const nome = document.getElementById('prodName').value.trim();
       const preco = parseFloat(document.getElementById('prodPrice').value);
       const categoria = document.getElementById('prodCategory').value;
       const imagem = document.getElementById('prodImage').value.trim() || './icon-192.png';
       const promocao = document.getElementById('prodPromo').checked;
+      const oculto = document.getElementById('prodHidden').checked;
 
-      setButtonLoading('prodSubmitBtn', true, '⏳ Salvando produto...', 'Salvar Produto no Catálogo');
+      const defaultLabel = editId ? 'Salvar Alterações do Produto' : 'Salvar Produto no Catálogo';
+      setButtonLoading('prodSubmitBtn', true, '⏳ Salvando...', defaultLabel);
 
       try {
-        await addDoc(collection(db, "produtos"), {
-          nome,
-          preco,
-          categoria,
-          imagem,
-          promocao,
-          criadoEm: new Date().toISOString()
-        });
+        if (editId) {
+          await updateDoc(doc(db, "produtos", editId), {
+            nome,
+            preco,
+            categoria,
+            imagem,
+            promocao,
+            oculto,
+            atualizadoEm: new Date().toISOString()
+          });
+          showToast('Produto atualizado com sucesso!');
+        } else {
+          await addDoc(collection(db, "produtos"), {
+            nome,
+            preco,
+            categoria,
+            imagem,
+            promocao,
+            oculto,
+            criadoEm: new Date().toISOString()
+          });
+          showToast('Produto adicionado ao Mercadinho JM!');
+        }
         e.target.reset();
+        document.getElementById('editProdId').value = '';
         previewProductImage('');
         closeModal('adminModal');
-        showToast('Produto adicionado ao Mercadinho JM!');
       } catch (err) {
         showToast('Erro ao salvar produto: ' + err.message);
       } finally {
-        setButtonLoading('prodSubmitBtn', false, '⏳ Salvando produto...', 'Salvar Produto no Catálogo');
+        setButtonLoading('prodSubmitBtn', false, '⏳ Salvando...', defaultLabel);
       }
     };
 
@@ -1602,8 +1930,10 @@
     function renderProducts() {
       const term = document.getElementById('searchInput').value.toLowerCase();
       const grid = document.getElementById('productsGrid');
+      const isAdmin = isAdminLoggedIn();
 
       const filtered = allProducts.filter(p => {
+        if (!isAdmin && p.oculto) return false;
         const matchSearch = p.nome.toLowerCase().includes(term);
         const matchCat =
           currentCategory === 'Todas' ||
@@ -1613,22 +1943,37 @@
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="empty-state">Nenhum produto cadastrado ainda nesta categoria.</div>`;
+        grid.innerHTML = `<div class="empty-state">Nenhum produto disponível nesta categoria.</div>`;
         return;
       }
 
-      grid.innerHTML = filtered.map(prod => `
-        <div class="product-card">
-          ${prod.promocao ? '<span class="promo-badge">Oferta</span>' : ''}
-          <img src="${prod.imagem}" alt="${prod.nome}" class="product-img" onerror="this.src='./icon-192.png'" />
-          <div>
-            <div class="product-cat">${prod.categoria}</div>
-            <div class="product-title">${prod.nome}</div>
-            <div class="product-price">R$ ${prod.preco.toFixed(2).replace('.', ',')}</div>
-            <button class="add-btn" onclick="addToCart('${prod.id}')">+ Adicionar</button>
+      grid.innerHTML = filtered.map(prod => {
+        const isHidden = Boolean(prod.oculto);
+        const actionControls = isAdmin
+          ? `
+            <div class="admin-card-actions">
+              <button type="button" class="edit-item-btn" onclick="openEditProductModal('${prod.id}')">✏️ Editar</button>
+              <button type="button" class="toggle-hide-btn ${isHidden ? 'is-hidden' : ''}" onclick="toggleHideProduct('${prod.id}')">
+                ${isHidden ? '👁️ Mostrar' : '🙈 Ocultar'}
+              </button>
+            </div>
+          `
+          : `<button type="button" class="add-btn" onclick="addToCart('${prod.id}')">+ Adicionar</button>`;
+
+        return `
+          <div class="product-card ${isHidden ? 'hidden-item' : ''}">
+            ${prod.promocao ? '<span class="promo-badge">Oferta</span>' : ''}
+            ${isHidden ? '<span class="hidden-badge">Oculto</span>' : ''}
+            <img src="${prod.imagem}" alt="${prod.nome}" class="product-img" onerror="this.src='./icon-192.png'" />
+            <div>
+              <div class="product-cat">${prod.categoria}</div>
+              <div class="product-title">${prod.nome}</div>
+              <div class="product-price">R$ ${Number(prod.preco || 0).toFixed(2).replace('.', ',')}</div>
+              ${actionControls}
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // =========================================================================
@@ -1642,20 +1987,24 @@
       const subtotal = cart.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
       const minFree = Number(storeConfig.freeShippingMin ?? 30);
       const feeConfig = Number(storeConfig.deliveryFee ?? 5);
-      const isFree = subtotal > 0 && subtotal >= minFree;
-      const deliveryFee = subtotal === 0 || isFree ? 0 : feeConfig;
+      const alwaysFree = minFree === 0 || feeConfig === 0;
+      const isFree = alwaysFree || (subtotal > 0 && subtotal >= minFree);
+      const deliveryFee = (subtotal === 0 || isFree) ? 0 : feeConfig;
       const total = subtotal + deliveryFee;
-      const missingForFree = Math.max(0, minFree - subtotal);
+      const missingForFree = alwaysFree ? 0 : Math.max(0, minFree - subtotal);
 
-      return { subtotal, deliveryFee, total, isFree, minFree, missingForFree };
+      return { subtotal, deliveryFee, total, isFree, alwaysFree, minFree, feeConfig, missingForFree };
     }
 
     function updateShippingBanner() {
       const banner = document.getElementById('shippingBanner');
       if (!banner) return;
-      const { subtotal, isFree, minFree, missingForFree } = getCartTotals();
+      const { subtotal, isFree, alwaysFree, minFree, feeConfig, missingForFree } = getCartTotals();
 
-      if (isFree) {
+      if (alwaysFree) {
+        banner.classList.add('free');
+        banner.textContent = `🎉 ENTREGA GRÁTIS em todos os pedidos no Mercadinho JM!`;
+      } else if (isFree) {
         banner.classList.add('free');
         banner.textContent = `🎉 Parabéns! Você garantiu ENTREGA GRÁTIS no Mercadinho JM!`;
       } else if (subtotal > 0) {
@@ -1663,7 +2012,7 @@
         banner.textContent = `🚚 Faltam ${formatBRL(missingForFree)} para você ganhar ENTREGA GRÁTIS (a partir de ${formatBRL(minFree)})!`;
       } else {
         banner.classList.remove('free');
-        banner.textContent = `🚚 Entrega grátis a partir de ${formatBRL(minFree)} em compras!`;
+        banner.textContent = `🚚 Entrega grátis a partir de ${formatBRL(minFree)} (taxa de ${formatBRL(feeConfig)} abaixo desse valor).`;
       }
     }
 
@@ -1674,7 +2023,9 @@
       if (existing) existing.qtd++;
       else cart.push({ ...prod, qtd: 1 });
 
-      saveCart();
+      updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
       showToast(`${prod.nome} adicionado!`);
     };
 
@@ -1683,7 +2034,9 @@
       if (!item) return;
       item.qtd += delta;
       if (item.qtd <= 0) cart = cart.filter(i => i.id !== id);
-      saveCart();
+      updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
       renderCartModal();
     };
 
@@ -1909,7 +2262,9 @@
           : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
         cart = [];
-        saveCart();
+        updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
+    saveCart();
         closeModal('cartModal');
         showToast('Pedido salvo! Abrindo WhatsApp do Mercadinho JM...');
         window.open(waUrl, '_blank');
@@ -2143,6 +2498,8 @@
       });
     }
 
+    updateStoreHoursUI();
+    setInterval(updateStoreHoursUI, 60000);
     saveCart();
   </script>
 </body>
