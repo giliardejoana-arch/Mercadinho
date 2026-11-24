@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f9d58" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <title>Mercadinho JM - O melhor lugar para comprar</title>
+  <style>
+    :root {
+      --primary: #0f9d58;
+      --primary-dark: #0b7a43;
+      --accent: #ff9800;
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --danger: #ef4444;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-top: 235px;
+      padding-bottom: 92px;
+    }
+
+    /* HEADER FIXO COM CANVAS */
+    .fixed-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      min-height: 186px;
+      z-index: 1000;
+      background: linear-gradient(135deg, #064e3b 0%, #0f9d58 100%);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    #headerCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 2;
+      padding: 10px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      gap: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      line-height: 1.1;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .brand-slogan {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #d1fae5;
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      position: relative;
+    }
+
+    .admin-identity {
+      background: #ff9800;
+      color: #111;
+      border: 1px solid #ffd180;
+      padding: 4px 10px;
+      border-radius: 14px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      line-height: 1.05;
+    }
+
+    .admin-identity .admin-sub {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #3b2200;
+    }
+
+    .notify-dot {
+      position: absolute;
+      top: -4px;
+      right: -3px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #ff3b30;
+      border: 2px solid #ffffff;
+      display: none;
+    }
+
+    .notify-dot.active {
+      display: block;
+    }
+
+    /* BARRA EXTERNA DE BOTÕES DO ADMIN */
+    .admin-quick-bar {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .admin-quick-bar.show {
+      display: grid;
+    }
+
+    .admin-quick-btn {
+      background: #fffbeb;
+      color: #1e293b;
+      border: 1px solid #fcd34d;
+      border-radius: 10px;
+      padding: 7px 6px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+
+    /* BUSCA RÁPIDA */
+    .search-box {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 9px 16px 9px 38px;
+      border-radius: 12px;
+      border: none;
+      font-size: 0.92rem;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      outline: none;
+    }
+
+    .search-box span {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+    }
+
+    /* CATEGORIAS HORIZONTAIS */
+    .categories-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .categories-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-chip {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .cat-chip.active {
+      background: #fff;
+      color: var(--primary-dark);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* BANNER DE INSTALAÇÃO NA PRIMEIRA VISITA */
+    .install-banner {
+      display: none;
+      background: #fffbeb;
+      border: 1.5px solid #f59e0b;
+      color: #78350f;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.84rem;
+    }
+
+    .install-banner.show {
+      display: flex;
+    }
+
+    .install-banner-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .install-now-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 11px;
+      font-weight: 800;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .install-dismiss-btn {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    /* BANNER DE ENTREGA GRÁTIS */
+    .shipping-banner {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .shipping-banner.free {
+      background: #fef3c7;
+      border-color: #fcd34d;
+      color: #92400e;
+    }
+
+    /* GRADE DE PRODUTOS EM 2 COLUNAS */
+    .container {
+      padding: 12px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (min-width: 650px) {
+      .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .product-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      border: 1px solid #e2e8f0;
+    }
+
+    .promo-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 8px;
+      z-index: 2;
+      text-transform: uppercase;
+    }
+
+    .product-img {
+      width: 100%;
+      height: 115px;
+      object-fit: contain;
+      background: #f8fafc;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      padding: 4px;
+    }
+
+    .product-cat {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .product-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 3px 0 6px;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-price {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    .add-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 9px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    /* BARRA INFERIOR FIXA DO CARRINHO */
+    .cart-bar {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      max-width: 876px;
+      margin: 0 auto;
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 18px;
+      border-radius: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      z-index: 999;
+      cursor: pointer;
+    }
+
+    .cart-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cart-badge {
+      background: var(--accent);
+      color: #111;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+    }
+
+    /* MODAIS */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #fff;
+      width: 100%;
+      max-width: 460px;
+      border-radius: 18px;
+      padding: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.22s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+
+    .close-btn {
+      background: #f1f5f9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      padding: 9px 6px;
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      font-size: 0.82rem;
+      border-radius: 9px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .tab-btn.active {
+      background: #fff;
+      color: var(--primary-dark);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+      margin-bottom: 11px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      outline: none;
+      background: #fff;
+    }
+
+    .img-preview-box {
+      width: 100%;
+      height: 105px;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 6px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+
+    .img-preview-box img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .submit-btn.loading {
+      background: #d97706;
+      color: #ffffff;
+      opacity: 0.92;
+      cursor: wait;
+    }
+
+    .payment-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 0.86rem;
+    }
+
+    .qr-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      padding: 10px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
+
+
+    .copy-pix-btn {
+      margin-top: 10px;
+      width: 100%;
+      background: #0f9d58;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .copy-pix-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .qr-wrapper img {
+      width: 185px;
+      height: 185px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .order-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #f8fafc;
+      font-size: 0.85rem;
+      position: relative;
+    }
+
+    .order-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .delete-x-btn {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-badge.separando {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-badge.saiu {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-badge.concluido {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .status-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .status-btn {
+      padding: 7px 5px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.73rem;
+      cursor: pointer;
+    }
+
+    .stars-row {
+      display: flex;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    .star-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .star-btn.selected {
+      background: #fef3c7;
+      border-color: #f59e0b;
+    }
+
+    .toast {
+      position: fixed;
+      top: 242px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 25px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 3000;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      text-align: center;
+      max-width: 92%;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 15px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CABEÇALHO FIXO COM ANIMAÇÃO CANVAS -->
+  <header class="fixed-header" id="mainHeader">
+    <canvas id="headerCanvas"></canvas>
+    <div class="header-content">
+      <div class="top-bar">
+        <div class="brand">
+          <span style="font-size: 1.55rem;">🛒</span>
+          <div>
+            <h1>Mercadinho JM</h1>
+            <div class="brand-slogan">O melhor lugar para comprar</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div id="adminBadgeBox" class="admin-identity">
+            <span>⚙️</span>
+            <div>
+              <div id="adminFirstNameText">Admin</div>
+              <div class="admin-sub">admin</div>
+            </div>
+          </div>
+
+          <button id="clientOrdersBtn" class="icon-btn" onclick="openClientOrdersModal()">
+            <span>📦 Pedidos</span>
+            <span id="clientOrdersDot" class="notify-dot"></span>
+          </button>
+
+          <button id="authHeaderBtn" class="icon-btn" onclick="handleAuthHeaderClick()">
+            👤 Entrar
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTÕES DO ADMIN SEMPRE FORA E VISÍVEIS QUANDO LOGADO COMO ADMIN -->
+      <div id="adminQuickBar" class="admin-quick-bar">
+        <button type="button" class="admin-quick-btn" onclick="openAdminAction('prod')">+ Produto</button>
+        <button type="button" class="admin-quick-btn" onclick="openAdminAction('orders')">📦 Pedidos</button>
+        <button type="button" class="admin-quick-btn" onclick="openAdminAction('config')">📞 Pix/Fone</button>
+      </div>
+
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar arroz, leite, refrigerante..." oninput="filterProducts()" />
+      </div>
+
+      <div class="categories-bar" id="categoriesBar">
+        <button class="cat-chip active" data-cat="Todas" onclick="selectCategory('Todas', this)">Todas</button>
+        <button class="cat-chip" data-cat="Promoções" onclick="selectCategory('Promoções', this)">🔥 Promoções</button>
+        <button class="cat-chip" data-cat="Mercearia" onclick="selectCategory('Mercearia', this)">🥫 Mercearia</button>
+        <button class="cat-chip" data-cat="Bebidas" onclick="selectCategory('Bebidas', this)">🥤 Bebidas</button>
+        <button class="cat-chip" data-cat="Limpeza" onclick="selectCategory('Limpeza', this)">🧼 Limpeza</button>
+        <button class="cat-chip" data-cat="Hortifrúti" onclick="selectCategory('Hortifrúti', this)">🍎 Hortifrúti</button>
+        <button class="cat-chip" data-cat="Padaria" onclick="selectCategory('Padaria', this)">🥖 Padaria</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NOTIFICAÇÃO FLUTUANTE -->
+  <div id="toast" class="toast"></div>
+
+  <!-- CATÁLOGO DE PRODUTOS (2 COLUNAS) -->
+  <main class="container">
+    <!-- AVISO DE INSTALAÇÃO APENAS NA PRIMEIRA VEZ -->
+    <div id="installBanner" class="install-banner">
+      <div>
+        <strong>📲 Instalar Mercadinho JM</strong><br />
+        <span>Adicione o aplicativo no seu celular para abrir mais rápido.</span>
+      </div>
+      <div class="install-banner-actions">
+        <button type="button" class="install-now-btn" onclick="triggerPwaInstall()">Instalar</button>
+        <button type="button" class="install-dismiss-btn" onclick="dismissInstallBanner()">Agora não</button>
+      </div>
+    </div>
+
+    <div id="shippingBanner" class="shipping-banner">
+      🚚 Entrega grátis a partir de R$ 30,00 em compras!
+    </div>
+
+    <div class="products-grid" id="productsGrid">
+      <div class="empty-state">Carregando produtos do Mercadinho JM...</div>
+    </div>
+  </main>
+
+  <!-- BARRA DO CARRINHO -->
+  <div class="cart-bar" onclick="openModal('cartModal')">
+    <div class="cart-info">
+      <span class="cart-badge" id="cartCount">0</span>
+      <span style="font-weight: 700;">Ver Carrinho</span>
+    </div>
+    <div style="font-weight: 800; font-size: 1.05rem;" id="cartTotal">R$ 0,00</div>
+  </div>
+
+  <!-- MODAL DE LOGIN / CADASTRO -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="authModalTitle">Acesse sua Conta</h3>
+        <button class="close-btn" onclick="closeModal('authModal')">✕</button>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="tab-btn active" id="tabLogin" onclick="switchAuthTab('login')">Já tenho conta</button>
+        <button class="tab-btn" id="tabRegister" onclick="switchAuthTab('register')">Criar Cadastro</button>
+      </div>
+
+      <form id="loginForm" onsubmit="loginUser(event)">
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="loginEmail" required placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••" />
+        </div>
+        <button type="submit" id="loginSubmitBtn" class="submit-btn">Entrar no Mercadinho JM</button>
+      </form>
+
+      <form id="registerForm" style="display: none;" onsubmit="registerUser(event)">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" id="regName" required placeholder="Ex: João da Silva" />
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="regEmail" required placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Senha (mínimo 6 caracteres)</label>
+          <input type="password" id="regPassword" minlength="6" required placeholder="Crie uma senha" />
+        </div>
+        <div class="form-group">
+          <label>Endereço Completo (Rua, Número, Bairro)</label>
+          <input type="text" id="regAddress" required placeholder="Rua das Flores, 123 - Centro" />
+        </div>
+        <div class="form-group">
+          <label>Ponto de Referência</label>
+          <input type="text" id="regReference" required placeholder="Próximo à praça / portão azul" />
+        </div>
+        <button type="submit" id="regSubmitBtn" class="submit-btn">Criar Conta e Continuar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DO CARRINHO / PAGAMENTO / CHECKOUT -->
+  <div class="modal-overlay" id="cartModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Seu Carrinho - Mercadinho JM</h3>
+        <button class="close-btn" onclick="closeModal('cartModal')">✕</button>
+      </div>
+
+      <div id="cartItemsContainer"></div>
+      <div id="deliveryAddressPreview" style="margin-top: 10px; font-size: 0.84rem; color: var(--muted);"></div>
+
+      <div id="checkoutOptionsBox" style="display: none; margin-top: 12px;">
+        <div class="form-group">
+          <label>Forma de Pagamento</label>
+          <select id="paymentMethod" onchange="handlePaymentChange()">
+            <option value="Pix">💠 Pix (QR Code com Valor)</option>
+            <option value="Dinheiro">💵 Dinheiro (Troco)</option>
+            <option value="Cartão">💳 Cartão na Entrega</option>
+          </select>
+        </div>
+
+        <div id="cashChangeBox" class="payment-box" style="display: none;">
+          <div class="form-group" style="margin-bottom: 6px;">
+            <label>Precisa de troco para quanto? (R$)</label>
+            <input type="number" step="0.01" id="changeForInput" placeholder="Ex: 50.00 (deixe vazio se não precisar)" oninput="updateChangeCalculation()" />
+          </div>
+          <div id="changeResultText" style="font-weight: 700; color: var(--primary-dark);"></div>
+        </div>
+
+        <div id="pixInfoBox" class="payment-box">
+          <div style="font-size: 0.92rem; text-align: center;">
+            <strong>Valor do Pix já calculado:</strong>
+            <span id="pixAmountDisplay" style="font-weight: 800; color: var(--primary-dark); font-size: 1.05rem;">R$ 0,00</span>
+          </div>
+          <div class="qr-wrapper" id="pixQrWrapper">
+            <img id="pixQrImage" alt="QR Code Pix" style="display: none;" />
+            <span id="pixQrPlaceholder" style="font-size: 0.8rem; color: #64748b; text-align: center;">
+              Cadastre sua chave Pix no Painel Admin para gerar o QR Code.
+            </span>
+          </div>
+          <button type="button" id="copyPixBtn" class="copy-pix-btn" onclick="copyPixCode()" disabled>
+            📋 Copiar Código Pix Copia e Cola
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px; font-size: 0.9rem; display: flex; justify-content: space-between;">
+        <span>Entrega:</span>
+        <strong id="modalDeliveryFee">R$ 0,00</strong>
+      </div>
+      <div style="margin-top: 6px; display: flex; justify-content: space-between; font-weight: 800; font-size: 1.12rem;">
+        <span>Total Final:</span>
+        <span id="modalCartTotal">R$ 0,00</span>
+      </div>
+
+      <button type="button" id="checkoutBtn" class="submit-btn" onclick="checkoutOrder()">Finalizar Compra e Enviar no WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- MODAL DE PEDIDOS DO CLIENTE (NOTIFICAÇÃO + AVALIAÇÃO) -->
+  <div class="modal-overlay" id="clientOrdersModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Meus Pedidos - Mercadinho JM</h3>
+        <button class="close-btn" onclick="closeModal('clientOrdersModal')">✕</button>
+      </div>
+      <div id="clientOrdersContainer">Carregando seus pedidos...</div>
+    </div>
+  </div>
+
+  <!-- MODAL DO ADMINISTRADOR (ABRE DIRETO NA AÇÃO CLICADA FORA) -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="adminModalTitle">Admin - Mercadinho JM</h3>
+        <button class="close-btn" onclick="closeModal('adminModal')">✕</button>
+      </div>
+
+      <!-- AÇÃO 1: CADASTRAR PRODUTO -->
+      <form id="adminProdForm" onsubmit="addProduct(event)">
+        <div class="form-group">
+          <label>Nome do Produto</label>
+          <input type="text" id="prodName" required placeholder="Ex: Arroz Branco 5kg" />
+        </div>
+        <div class="form-group">
+          <label>Preço (R$)</label>
+          <input type="number" step="0.01" id="prodPrice" required placeholder="Ex: 24.90" />
+        </div>
+        <div class="form-group">
+          <label>Categoria</label>
+          <select id="prodCategory">
+            <option value="Mercearia">Mercearia</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Limpeza">Limpeza</option>
+            <option value="Hortifrúti">Hortifrúti</option>
+            <option value="Padaria">Padaria</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Link da Imagem da Internet (URL)</label>
+          <input type="url" id="prodImage" oninput="previewProductImage(this.value)" placeholder="https://..." />
+          <div class="img-preview-box" id="imgPreviewBox">
+            <span style="font-size: 0.8rem; color: #94a3b8;">Pré-visualização da foto</span>
+          </div>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="prodPromo" style="width: auto;" />
+          <label for="prodPromo" style="margin: 0;">Destacar em Promoções 🔥</label>
+        </div>
+        <button type="submit" id="prodSubmitBtn" class="submit-btn">Salvar Produto no Catálogo</button>
+      </form>
+
+      <!-- AÇÃO 2: PEDIDOS, STATUS, AVALIAÇÕES E APAGAR COM X -->
+      <div id="adminOrdersPanel" style="display: none;">
+        <div id="ordersListContainer">Carregando pedidos...</div>
+      </div>
+
+      <!-- AÇÃO 3: TELEFONE, CHAVE PIX ALEATÓRIA E ENTREGA GRÁTIS -->
+      <form id="adminConfigForm" style="display: none;" onsubmit="saveStoreConfig(event)">
+        <div class="form-group">
+          <label>Telefone WhatsApp do Administrador (com DDD)</label>
+          <input type="tel" id="cfgWhatsapp" required placeholder="Ex: 85999998888" />
+        </div>
+        <div class="form-group">
+          <label>Chave Pix Aleatória</label>
+          <input type="text" id="cfgPixKey" required placeholder="Cole sua chave Pix aleatória" />
+        </div>
+        <div class="form-group">
+          <label>Nome do Recebedor no Pix (até 25 letras)</label>
+          <input type="text" id="cfgPixMerchant" maxlength="25" required placeholder="Ex: MERCADINHO JM" />
+        </div>
+        <div class="form-group">
+          <label>Valor Mínimo para Entrega Grátis (R$)</label>
+          <input type="number" step="0.01" id="cfgFreeShippingMin" required placeholder="30.00" />
+        </div>
+        <div class="form-group">
+          <label>Taxa de Entrega abaixo do valor mínimo (R$)</label>
+          <input type="number" step="0.01" id="cfgDeliveryFee" required placeholder="5.00" />
+        </div>
+        <button type="submit" id="configSubmitBtn" class="submit-btn">Salvar Configurações da Loja</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FIREBASE SDKs + LÓGICA DO APP -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      doc,
+      setDoc,
+      getDoc,
+      updateDoc,
+      deleteDoc,
+      onSnapshot,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2M6J8KHvFvJJm2OlrWTlzjejFelczhAY",
+      authDomain: "mercadinho2.firebaseapp.com",
+      projectId: "mercadinho2",
+      storageBucket: "mercadinho2.firebasestorage.app",
+      messagingSenderId: "1031963453955",
+      appId: "1:1031963453955:web:caec01860023030d213c36"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let allProducts = [];
+    let allOrders = [];
+    let cart = JSON.parse(localStorage.getItem('mercadinho_jm_cart') || '[]');
+    let draftRatings = {};
+    let currentCategory = 'Todas';
+    let currentUser = null;
+    let currentUserProfile = null;
+    let pendingCheckout = false;
+    let deferredInstallPrompt = null;
+
+    let storeConfig = {
+      whatsapp: '',
+      pixKey: '',
+      pixMerchant: 'MERCADINHO JM',
+      freeShippingMin: 30,
+      deliveryFee: 5
+    };
+
+    // =========================================================================
+    // PROMPT DE INSTALAÇÃO APENAS NA PRIMEIRA VISITA DO CLIENTE
+    // =========================================================================
+    const INSTALL_PROMPT_SEEN_KEY = 'mercadinho_jm_install_prompt_shown_v1';
+
+    function isStandaloneApp() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function maybeShowFirstVisitInstallBanner() {
+      if (isStandaloneApp()) return;
+      if (localStorage.getItem(INSTALL_PROMPT_SEEN_KEY) === '1') return;
+
+      const banner = document.getElementById('installBanner');
+      if (!banner) return;
+
+      localStorage.setItem(INSTALL_PROMPT_SEEN_KEY, '1');
+      banner.classList.add('show');
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      maybeShowFirstVisitInstallBanner();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      localStorage.setItem(INSTALL_PROMPT_SEEN_KEY, '1');
+      document.getElementById('installBanner').classList.remove('show');
+      showToast('Mercadinho JM instalado na sua gaveta de apps!');
+    });
+
+    window.triggerPwaInstall = async () => {
+      const banner = document.getElementById('installBanner');
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        banner.classList.remove('show');
+        if (choice.outcome === 'accepted') {
+          showToast('Instalando Mercadinho JM...');
+        }
+      } else {
+        banner.classList.remove('show');
+        showToast('No menu do navegador (⋮), toque em "Instalar aplicativo" ou "Adicionar à tela inicial".');
+      }
+    };
+
+    window.dismissInstallBanner = () => {
+      localStorage.setItem(INSTALL_PROMPT_SEEN_KEY, '1');
+      document.getElementById('installBanner').classList.remove('show');
+    };
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        maybeShowFirstVisitInstallBanner();
+      }, 900);
+    });
+
+    // =========================================================================
+    // ANIMAÇÃO CANVAS NO CABEÇALHO FIXO (CARRINHOS E MERCADORIAS VOANDO)
+    // =========================================================================
+    const canvas = document.getElementById('headerCanvas');
+    const ctx = canvas.getContext('2d');
+    const flyingItems = [];
+    const marketIcons = ['🛒', '🍎', '🥖', '🥛', '🥬', '🥫', '🧼', '🍌', '🛒'];
+
+    function resizeCanvas() {
+      const header = document.getElementById('mainHeader');
+      canvas.width = header.offsetWidth;
+      canvas.height = header.offsetHeight;
+      document.body.style.paddingTop = `${header.offsetHeight + 8}px`;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class FlyingGoods {
+      constructor() {
+        this.reset(true);
+      }
+      reset(randomX = false) {
+        this.icon = marketIcons[Math.floor(Math.random() * marketIcons.length)];
+        this.size = this.icon === '🛒' ? (Math.random() * 8 + 20) : (Math.random() * 8 + 16);
+        this.x = randomX ? Math.random() * canvas.width : -35;
+        this.y = Math.random() * Math.max(20, canvas.height - 25) + 10;
+        this.vx = Math.random() * 0.85 + 0.45;
+        this.vy = (Math.random() - 0.5) * 0.35;
+        this.angle = (Math.random() - 0.5) * 0.25;
+        this.alpha = Math.random() * 0.22 + 0.14;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.y < 8 || this.y > canvas.height - 10) this.vy *= -1;
+        if (this.x > canvas.width + 35) this.reset(false);
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.globalAlpha = this.alpha;
+        ctx.font = `${this.size}px sans-serif`;
+        ctx.fillText(this.icon, -this.size / 2, this.size / 2);
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 16; i++) flyingItems.push(new FlyingGoods());
+
+    function animateCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const item of flyingItems) {
+        item.update();
+        item.draw();
+      }
+      requestAnimationFrame(animateCanvas);
+    }
+    animateCanvas();
+
+    // =========================================================================
+    // GERADOR PIX COPIA E COLA (EMV + CRC16) COM VALOR EXATO
+    // =========================================================================
+    function crc16Ccitt(str) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          if ((crc & 0x8000) !== 0) crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+          else crc = (crc << 1) & 0xFFFF;
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    function emvField(id, value) {
+      const len = String(value.length).padStart(2, '0');
+      return `${id}${len}${value}`;
+    }
+
+    function buildPixPayload(key, merchantName, amount) {
+      if (!key) return '';
+      const cleanKey = key.trim();
+      const cleanMerchant = (merchantName || 'MERCADINHO JM')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9 ]/g, '')
+        .toUpperCase()
+        .slice(0, 25) || 'MERCADINHO JM';
+      const merchantCity = 'FORTALEZA';
+      const formattedAmount = Number(amount || 0).toFixed(2);
+
+      const gui = emvField('00', 'br.gov.bcb.pix');
+      const keyField = emvField('01', cleanKey);
+      const merchantAccountInfo = emvField('26', gui + keyField);
+      const additionalData = emvField('05', '***');
+
+      const partialPayload =
+        emvField('00', '01') +
+        merchantAccountInfo +
+        emvField('52', '0000') +
+        emvField('53', '986') +
+        emvField('54', formattedAmount) +
+        emvField('58', 'BR') +
+        emvField('59', cleanMerchant) +
+        emvField('60', merchantCity) +
+        emvField('62', additionalData) +
+        '6304';
+
+      return partialPayload + crc16Ccitt(partialPayload);
+    }
+
+    // =========================================================================
+    // UTILITÁRIOS DE INTERFACE E ESTADO DOS BOTÕES
+    // =========================================================================
+    window.showToast = (msg) => {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    };
+
+    function setButtonLoading(btnId, isLoading, loadingText, defaultText) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = isLoading;
+      btn.classList.toggle('loading', isLoading);
+      btn.textContent = isLoading ? loadingText : defaultText;
+    }
+
+    window.openModal = (id) => {
+      if (id === 'cartModal') renderCartModal();
+      document.getElementById(id).classList.add('open');
+    };
+
+    window.closeModal = (id) => {
+      document.getElementById(id).classList.remove('open');
+    };
+
+    window.openAdminAction = (section) => {
+      const titleMap = {
+        prod: 'Cadastrar Produto - Mercadinho JM',
+        orders: 'Pedidos Recebidos - Mercadinho JM',
+        config: 'Telefone, Pix e Entrega - Mercadinho JM'
+      };
+      document.getElementById('adminModalTitle').textContent = titleMap[section] || 'Admin - Mercadinho JM';
+      document.getElementById('adminProdForm').style.display = section === 'prod' ? 'block' : 'none';
+      document.getElementById('adminOrdersPanel').style.display = section === 'orders' ? 'block' : 'none';
+      document.getElementById('adminConfigForm').style.display = section === 'config' ? 'block' : 'none';
+
+      if (section === 'config') fillConfigForm();
+      if (section === 'orders') renderAdminOrders();
+
+      document.getElementById('adminModal').classList.add('open');
+    };
+
+    window.previewProductImage = (url) => {
+      const box = document.getElementById('imgPreviewBox');
+      if (!url.trim()) {
+        box.innerHTML = '<span style="font-size: 0.8rem; color: #94a3b8;">Pré-visualização da foto</span>';
+        return;
+      }
+      box.innerHTML = `<img src="${url.trim()}" onerror="this.parentElement.innerHTML='<span style=\'font-size:0.8rem;color:#ef4444;\'>Link inválido ou bloqueado</span>'" />`;
+    };
+
+    window.switchAuthTab = (tab) => {
+      const isLogin = tab === 'login';
+      document.getElementById('tabLogin').classList.toggle('active', isLogin);
+      document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+      document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+      document.getElementById('authModalTitle').textContent = isLogin ? 'Entrar na Conta' : 'Criar Meu Cadastro';
+    };
+
+    // =========================================================================
+    // CONFIGURAÇÃO DA LOJA
+    // =========================================================================
+    onSnapshot(doc(db, "configuracoes", "mercadinho_jm"), (snap) => {
+      if (snap.exists()) {
+        storeConfig = { ...storeConfig, ...snap.data() };
+      }
+      updateShippingBanner();
+      if (document.getElementById('cartModal').classList.contains('open')) {
+        renderCartModal();
+      }
+    });
+
+    function fillConfigForm() {
+      document.getElementById('cfgWhatsapp').value = storeConfig.whatsapp || '';
+      document.getElementById('cfgPixKey').value = storeConfig.pixKey || '';
+      document.getElementById('cfgPixMerchant').value = storeConfig.pixMerchant || 'MERCADINHO JM';
+      document.getElementById('cfgFreeShippingMin').value = storeConfig.freeShippingMin ?? 30;
+      document.getElementById('cfgDeliveryFee').value = storeConfig.deliveryFee ?? 5;
+    }
+
+    window.saveStoreConfig = async (e) => {
+      e.preventDefault();
+      if (!currentUserProfile || currentUserProfile.role !== 'admin') {
+        showToast('Apenas o administrador pode alterar essas configurações.');
+        return;
+      }
+
+      setButtonLoading('configSubmitBtn', true, '⏳ Salvando...', 'Salvar Configurações da Loja');
+
+      const whatsapp = document.getElementById('cfgWhatsapp').value.replace(/\D/g, '');
+      const pixKey = document.getElementById('cfgPixKey').value.trim();
+      const pixMerchant = document.getElementById('cfgPixMerchant').value.trim() || 'MERCADINHO JM';
+      const freeShippingMin = parseFloat(document.getElementById('cfgFreeShippingMin').value) || 30;
+      const deliveryFee = parseFloat(document.getElementById('cfgDeliveryFee').value) || 0;
+
+      try {
+        await setDoc(doc(db, "configuracoes", "mercadinho_jm"), {
+          whatsapp,
+          pixKey,
+          pixMerchant,
+          freeShippingMin,
+          deliveryFee
+        });
+        storeConfig = { whatsapp, pixKey, pixMerchant, freeShippingMin, deliveryFee };
+        updateShippingBanner();
+        showToast('Telefone, Pix e regras de entrega salvos!');
+      } catch (err) {
+        showToast('Erro ao salvar configurações: ' + err.message);
+      } finally {
+        setButtonLoading('configSubmitBtn', false, '⏳ Salvando...', 'Salvar Configurações da Loja');
+      }
+    };
+
+    // =========================================================================
+    // AUTENTICAÇÃO E PERFIL NO FIRESTORE
+    // =========================================================================
+    function applyRoleHeaderUI() {
+      const authBtn = document.getElementById('authHeaderBtn');
+      const adminBadge = document.getElementById('adminBadgeBox');
+      const adminBar = document.getElementById('adminQuickBar');
+      const clientOrdersBtn = document.getElementById('clientOrdersBtn');
+
+      if (!currentUser) {
+        authBtn.textContent = '👤 Entrar';
+        adminBadge.style.display = 'none';
+        adminBar.classList.remove('show');
+        clientOrdersBtn.style.display = 'inline-flex';
+        resizeCanvas();
+        return;
+      }
+
+      const rawName = (currentUserProfile && currentUserProfile.nome) ? currentUserProfile.nome : currentUser.email;
+      const firstName = rawName.split(' ')[0];
+      const isAdmin = currentUserProfile && currentUserProfile.role === 'admin';
+
+      authBtn.textContent = `Sair`;
+
+      if (isAdmin) {
+        document.getElementById('adminFirstNameText').textContent = firstName;
+        adminBadge.style.display = 'flex';
+        adminBar.classList.add('show');
+        clientOrdersBtn.style.display = 'none';
+      } else {
+        adminBadge.style.display = 'none';
+        adminBar.classList.remove('show');
+        clientOrdersBtn.style.display = 'inline-flex';
+        authBtn.textContent = `👋 ${firstName} (Sair)`;
+      }
+
+      resizeCanvas();
+      updateClientNotificationDot();
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+          if (userDoc.exists()) {
+            currentUserProfile = userDoc.data();
+          } else {
+            currentUserProfile = {
+              nome: user.email.split('@')[0],
+              email: user.email,
+              endereco: 'Endereço não informado',
+              referencia: 'Sem referência',
+              role: 'cliente',
+              criadoEm: new Date().toISOString()
+            };
+            await setDoc(doc(db, "usuarios", user.uid), currentUserProfile);
+          }
+        } catch (err) {
+          console.error('Erro ao carregar perfil:', err);
+        }
+      } else {
+        currentUserProfile = null;
+      }
+
+      applyRoleHeaderUI();
+    });
+
+    window.handleAuthHeaderClick = async () => {
+      if (currentUser) {
+        await signOut(auth);
+        showToast('Você saiu da sua conta.');
+      } else {
+        switchAuthTab('login');
+        openModal('authModal');
+      }
+    };
+
+    window.registerUser = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const senha = document.getElementById('regPassword').value;
+      const endereco = document.getElementById('regAddress').value.trim();
+      const referencia = document.getElementById('regReference').value.trim();
+
+      setButtonLoading('regSubmitBtn', true, '⏳ Salvando...', 'Criar Conta e Continuar');
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, senha);
+        const profileData = {
+          nome,
+          email,
+          endereco,
+          referencia,
+          role: 'cliente',
+          criadoEm: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, "usuarios", cred.user.uid), profileData);
+        currentUserProfile = profileData;
+        applyRoleHeaderUI();
+
+        closeModal('authModal');
+        showToast('Cadastro realizado com sucesso!');
+
+        if (pendingCheckout) {
+          pendingCheckout = false;
+          openModal('cartModal');
+        }
+      } catch (err) {
+        if (err.code === 'auth/email-already-in-use') {
+          showToast('Este e-mail já tem cadastro. Vá em "Já tenho conta" para entrar.');
+        } else {
+          showToast('Erro ao cadastrar: ' + (err.message || 'tente novamente'));
+        }
+      } finally {
+        setButtonLoading('regSubmitBtn', false, '⏳ Salvando...', 'Criar Conta e Continuar');
+      }
+    };
+
+    window.loginUser = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const senha = document.getElementById('loginPassword').value;
+
+      setButtonLoading('loginSubmitBtn', true, '⏳ Entrando...', 'Entrar no Mercadinho JM');
+
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+        closeModal('authModal');
+        showToast('Login realizado com sucesso!');
+
+        if (pendingCheckout) {
+          pendingCheckout = false;
+          openModal('cartModal');
+        }
+      } catch (err) {
+        showToast('E-mail ou senha inválidos.');
+      } finally {
+        setButtonLoading('loginSubmitBtn', false, '⏳ Entrando...', 'Entrar no Mercadinho JM');
+      }
+    };
+
+    // =========================================================================
+    // PRODUTOS E CATÁLOGO EM TEMPO REAL
+    // =========================================================================
+    const productsQuery = query(collection(db, "produtos"), orderBy("nome"));
+    onSnapshot(productsQuery, (snapshot) => {
+      allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderProducts();
+    }, (error) => {
+      document.getElementById('productsGrid').innerHTML = `
+        <div class="empty-state">
+          Aguardando configuração/regras do Firestore Database.<br><small>${error.message}</small>
+        </div>`;
+    });
+
+    window.addProduct = async (e) => {
+      e.preventDefault();
+      if (!currentUserProfile || currentUserProfile.role !== 'admin') {
+        showToast('Apenas o administrador pode cadastrar produtos.');
+        return;
+      }
+
+      const nome = document.getElementById('prodName').value.trim();
+      const preco = parseFloat(document.getElementById('prodPrice').value);
+      const categoria = document.getElementById('prodCategory').value;
+      const imagem = document.getElementById('prodImage').value.trim() || './icon-192.png';
+      const promocao = document.getElementById('prodPromo').checked;
+
+      setButtonLoading('prodSubmitBtn', true, '⏳ Salvando produto...', 'Salvar Produto no Catálogo');
+
+      try {
+        await addDoc(collection(db, "produtos"), {
+          nome,
+          preco,
+          categoria,
+          imagem,
+          promocao,
+          criadoEm: new Date().toISOString()
+        });
+        e.target.reset();
+        previewProductImage('');
+        closeModal('adminModal');
+        showToast('Produto adicionado ao Mercadinho JM!');
+      } catch (err) {
+        showToast('Erro ao salvar produto: ' + err.message);
+      } finally {
+        setButtonLoading('prodSubmitBtn', false, '⏳ Salvando produto...', 'Salvar Produto no Catálogo');
+      }
+    };
+
+    window.selectCategory = (cat, btn) => {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderProducts();
+    };
+
+    window.filterProducts = () => renderProducts();
+
+    function renderProducts() {
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      const grid = document.getElementById('productsGrid');
+
+      const filtered = allProducts.filter(p => {
+        const matchSearch = p.nome.toLowerCase().includes(term);
+        const matchCat =
+          currentCategory === 'Todas' ||
+          (currentCategory === 'Promoções' && p.promocao) ||
+          p.categoria === currentCategory;
+        return matchSearch && matchCat;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="empty-state">Nenhum produto cadastrado ainda nesta categoria.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(prod => `
+        <div class="product-card">
+          ${prod.promocao ? '<span class="promo-badge">Oferta</span>' : ''}
+          <img src="${prod.imagem}" alt="${prod.nome}" class="product-img" onerror="this.src='./icon-192.png'" />
+          <div>
+            <div class="product-cat">${prod.categoria}</div>
+            <div class="product-title">${prod.nome}</div>
+            <div class="product-price">R$ ${prod.preco.toFixed(2).replace('.', ',')}</div>
+            <button class="add-btn" onclick="addToCart('${prod.id}')">+ Adicionar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // =========================================================================
+    // CARRINHO, ENTREGA GRÁTIS, PAGAMENTO E WHATSAPP
+    // =========================================================================
+    function formatBRL(value) {
+      return `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`;
+    }
+
+    function getCartTotals() {
+      const subtotal = cart.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
+      const minFree = Number(storeConfig.freeShippingMin ?? 30);
+      const feeConfig = Number(storeConfig.deliveryFee ?? 5);
+      const isFree = subtotal > 0 && subtotal >= minFree;
+      const deliveryFee = subtotal === 0 || isFree ? 0 : feeConfig;
+      const total = subtotal + deliveryFee;
+      const missingForFree = Math.max(0, minFree - subtotal);
+
+      return { subtotal, deliveryFee, total, isFree, minFree, missingForFree };
+    }
+
+    function updateShippingBanner() {
+      const banner = document.getElementById('shippingBanner');
+      if (!banner) return;
+      const { subtotal, isFree, minFree, missingForFree } = getCartTotals();
+
+      if (isFree) {
+        banner.classList.add('free');
+        banner.textContent = `🎉 Parabéns! Você garantiu ENTREGA GRÁTIS no Mercadinho JM!`;
+      } else if (subtotal > 0) {
+        banner.classList.remove('free');
+        banner.textContent = `🚚 Faltam ${formatBRL(missingForFree)} para você ganhar ENTREGA GRÁTIS (a partir de ${formatBRL(minFree)})!`;
+      } else {
+        banner.classList.remove('free');
+        banner.textContent = `🚚 Entrega grátis a partir de ${formatBRL(minFree)} em compras!`;
+      }
+    }
+
+    window.addToCart = (id) => {
+      const prod = allProducts.find(p => p.id === id);
+      if (!prod) return;
+      const existing = cart.find(item => item.id === id);
+      if (existing) existing.qtd++;
+      else cart.push({ ...prod, qtd: 1 });
+
+      saveCart();
+      showToast(`${prod.nome} adicionado!`);
+    };
+
+    window.changeQty = (id, delta) => {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) cart = cart.filter(i => i.id !== id);
+      saveCart();
+      renderCartModal();
+    };
+
+    function saveCart() {
+      localStorage.setItem('mercadinho_jm_cart', JSON.stringify(cart));
+      const totalItems = cart.reduce((acc, i) => acc + i.qtd, 0);
+      const { total } = getCartTotals();
+      document.getElementById('cartCount').textContent = totalItems;
+      document.getElementById('cartTotal').textContent = formatBRL(total);
+      updateShippingBanner();
+    }
+
+    window.handlePaymentChange = () => {
+      const method = document.getElementById('paymentMethod').value;
+      document.getElementById('cashChangeBox').style.display = method === 'Dinheiro' ? 'block' : 'none';
+      document.getElementById('pixInfoBox').style.display = method === 'Pix' ? 'block' : 'none';
+      updatePixAndChangeUI();
+    };
+
+    window.updateChangeCalculation = () => {
+      const { total } = getCartTotals();
+      const changeFor = parseFloat(document.getElementById('changeForInput').value);
+      const resultEl = document.getElementById('changeResultText');
+
+      if (!changeFor || changeFor <= 0) {
+        resultEl.textContent = 'Sem necessidade de troco (valor exato).';
+        return;
+      }
+      if (changeFor < total) {
+        resultEl.style.color = '#dc2626';
+        resultEl.textContent = `Valor menor que o total (${formatBRL(total)}).`;
+        return;
+      }
+      const troco = changeFor - total;
+      resultEl.style.color = '#0b7a43';
+      resultEl.textContent = `Troco estimado: ${formatBRL(troco)}`;
+    };
+
+    let currentPixPayload = '';
+
+    window.copyPixCode = async () => {
+      if (!currentPixPayload) {
+        showToast('Adicione itens e cadastre a chave Pix para gerar o código.');
+        return;
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(currentPixPayload);
+        } else {
+          const tempInput = document.createElement('textarea');
+          tempInput.value = currentPixPayload;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+        }
+        showToast('Código Pix Copia e Cola copiado! Cole no app do seu banco.');
+      } catch (err) {
+        showToast('Não foi possível copiar automaticamente: ' + err.message);
+      }
+    };
+
+    function updatePixAndChangeUI() {
+      const { total } = getCartTotals();
+      const amountDisplay = document.getElementById('pixAmountDisplay');
+      const qrImg = document.getElementById('pixQrImage');
+      const qrPlaceholder = document.getElementById('pixQrPlaceholder');
+      const copyBtn = document.getElementById('copyPixBtn');
+
+      amountDisplay.textContent = formatBRL(total);
+
+      if (storeConfig.pixKey && total > 0) {
+        currentPixPayload = buildPixPayload(storeConfig.pixKey, storeConfig.pixMerchant, total);
+        qrImg.onerror = () => {
+          qrImg.style.display = 'none';
+          qrPlaceholder.style.display = 'block';
+          qrPlaceholder.textContent = 'QR Code indisponível no momento. Use o botão abaixo para copiar o código Pix.';
+        };
+        qrImg.onload = () => {
+          qrImg.style.display = 'block';
+          qrPlaceholder.style.display = 'none';
+        };
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(currentPixPayload)}`;
+        qrImg.style.display = 'block';
+        qrPlaceholder.style.display = 'none';
+        if (copyBtn) copyBtn.disabled = false;
+      } else {
+        currentPixPayload = '';
+        qrImg.removeAttribute('src');
+        qrImg.style.display = 'none';
+        qrPlaceholder.style.display = 'block';
+        qrPlaceholder.textContent = storeConfig.pixKey
+          ? 'Adicione itens ao carrinho para gerar o QR Code.'
+          : 'Cadastre sua chave Pix no Painel Admin para gerar o QR Code.';
+        if (copyBtn) copyBtn.disabled = true;
+      }
+      updateChangeCalculation();
+    }
+
+    function renderCartModal() {
+      const container = document.getElementById('cartItemsContainer');
+      const addrPreview = document.getElementById('deliveryAddressPreview');
+      const checkoutOptions = document.getElementById('checkoutOptionsBox');
+      const { deliveryFee, total, isFree } = getCartTotals();
+
+      document.getElementById('modalDeliveryFee').textContent = isFree ? 'GRÁTIS 🎉' : formatBRL(deliveryFee);
+      document.getElementById('modalCartTotal').textContent = formatBRL(total);
+
+      if (cart.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding: 20px; color:#64748b;">Seu carrinho está vazio.</p>';
+        addrPreview.innerHTML = '';
+        checkoutOptions.style.display = 'none';
+        return;
+      }
+
+      checkoutOptions.style.display = 'block';
+      container.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <div>
+            <div style="font-weight:700; font-size:0.92rem;">${item.nome}</div>
+            <div style="font-size:0.82rem; color:#0b7a43; font-weight:700;">
+              ${item.qtd}x • ${formatBRL(item.preco * item.qtd)}
+            </div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty('${item.id}', -1)">-</button>
+            <span style="font-weight:700;">${item.qtd}</span>
+            <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+
+      if (currentUserProfile) {
+        addrPreview.innerHTML = `<strong>Entrega para:</strong> ${currentUserProfile.endereco} (${currentUserProfile.referencia})`;
+      } else {
+        addrPreview.innerHTML = `<em>Você fará login ou cadastro ao finalizar a compra.</em>`;
+      }
+
+      handlePaymentChange();
+    }
+
+    window.checkoutOrder = async () => {
+      if (cart.length === 0) {
+        showToast('Adicione itens ao carrinho primeiro.');
+        return;
+      }
+
+      if (!currentUser) {
+        pendingCheckout = true;
+        closeModal('cartModal');
+        switchAuthTab('register');
+        openModal('authModal');
+        showToast('Crie seu cadastro ou entre para finalizar o pedido.');
+        return;
+      }
+
+      const paymentMethod = document.getElementById('paymentMethod').value;
+      const changeForInput = document.getElementById('changeForInput').value;
+      const { subtotal, deliveryFee, total, isFree } = getCartTotals();
+
+      let trocoInfo = 'Não precisa';
+      if (paymentMethod === 'Dinheiro' && changeForInput) {
+        const valTrocoPara = parseFloat(changeForInput);
+        const trocoCalc = Math.max(0, valTrocoPara - total);
+        trocoInfo = `Troco para ${formatBRL(valTrocoPara)} (Levar ${formatBRL(trocoCalc)} de troco)`;
+      }
+
+      const pixPayload = paymentMethod === 'Pix'
+        ? buildPixPayload(storeConfig.pixKey, storeConfig.pixMerchant, total)
+        : '';
+
+      setButtonLoading('checkoutBtn', true, '⏳ Enviando pedido...', 'Finalizar Compra e Enviar no WhatsApp');
+
+      const orderData = {
+        clienteId: currentUser.uid,
+        clienteNome: currentUserProfile ? currentUserProfile.nome : currentUser.email,
+        endereco: currentUserProfile ? currentUserProfile.endereco : '',
+        referencia: currentUserProfile ? currentUserProfile.referencia : '',
+        itens: cart,
+        subtotal,
+        deliveryFee,
+        entregaGratis: isFree,
+        total,
+        pagamento: paymentMethod,
+        troco: trocoInfo,
+        pixCopiaECola: pixPayload || '',
+        status: 'Novo Pedido',
+        statusAtualizadoEm: Date.now(),
+        avaliacaoEnviada: false,
+        estrelas: 0,
+        mensagemCliente: '',
+        data: new Date().toISOString()
+      };
+
+      try {
+        await addDoc(collection(db, "pedidos"), orderData);
+
+        const itensTexto = cart
+          .map(i => `• ${i.qtd}x ${i.nome} (${formatBRL(i.preco * i.qtd)})`)
+          .join('\n');
+
+        let msg = `*🛒 NOVO PEDIDO - MERCADINHO JM*\n` +
+          `_O melhor lugar para comprar_\n\n` +
+          `*Cliente:* ${orderData.clienteNome}\n` +
+          `*Endereço:* ${orderData.endereco}\n` +
+          `*Referência:* ${orderData.referencia}\n\n` +
+          `*Itens:*\n${itensTexto}\n\n` +
+          `*Entrega:* ${isFree ? 'GRÁTIS' : formatBRL(deliveryFee)}\n` +
+          `*Total:* *${formatBRL(total)}*\n` +
+          `*Pagamento:* ${paymentMethod}`;
+
+        if (paymentMethod === 'Dinheiro') {
+          msg += `\n*Troco:* ${trocoInfo}`;
+        }
+        if (paymentMethod === 'Pix' && pixPayload) {
+          msg += `\n*Pix (Valor ${formatBRL(total)}):* ${pixPayload}`;
+        }
+
+        const phoneClean = (storeConfig.whatsapp || '').replace(/\D/g, '');
+        const waPhone = phoneClean.length <= 11 && phoneClean.length >= 10 ? `55${phoneClean}` : phoneClean;
+        const waUrl = waPhone
+          ? `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`
+          : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+        cart = [];
+        saveCart();
+        closeModal('cartModal');
+        showToast('Pedido salvo! Abrindo WhatsApp do Mercadinho JM...');
+        window.open(waUrl, '_blank');
+      } catch (err) {
+        showToast('Erro ao enviar pedido: ' + err.message);
+      } finally {
+        setButtonLoading('checkoutBtn', false, '⏳ Enviando pedido...', 'Finalizar Compra e Enviar no WhatsApp');
+      }
+    };
+
+    // =========================================================================
+    // PEDIDOS, NOTIFICAÇÃO POR PONTINHO, AVALIAÇÃO E EXCLUSÃO (X)
+    // =========================================================================
+    function getSeenMap() {
+      try {
+        return JSON.parse(localStorage.getItem('mercadinho_jm_seen_orders') || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function updateClientNotificationDot() {
+      const dot = document.getElementById('clientOrdersDot');
+      if (!dot || !currentUser) {
+        if (dot) dot.classList.remove('active');
+        return;
+      }
+
+      const seenMap = getSeenMap();
+      const myOrders = allOrders.filter(o => o.clienteId === currentUser.uid);
+      const hasUnread = myOrders.some(o => {
+        const stamp = o.statusAtualizadoEm || 0;
+        const lastSeen = seenMap[o.id] || 0;
+        return stamp > lastSeen && o.status !== 'Novo Pedido';
+      });
+
+      dot.classList.toggle('active', hasUnread);
+    }
+
+    window.openClientOrdersModal = () => {
+      if (!currentUser) {
+        switchAuthTab('login');
+        openModal('authModal');
+        showToast('Entre na sua conta para acompanhar seus pedidos.');
+        return;
+      }
+
+      const seenMap = getSeenMap();
+      allOrders
+        .filter(o => o.clienteId === currentUser.uid)
+        .forEach(o => {
+          if (o.statusAtualizadoEm) seenMap[o.id] = o.statusAtualizadoEm;
+        });
+      localStorage.setItem('mercadinho_jm_seen_orders', JSON.stringify(seenMap));
+      updateClientNotificationDot();
+
+      renderClientOrders();
+      document.getElementById('clientOrdersModal').classList.add('open');
+    };
+
+    window.selectStar = (orderId, stars) => {
+      draftRatings[orderId] = stars;
+      renderClientOrders();
+    };
+
+    window.submitCustomerFeedback = async (orderId) => {
+      const stars = draftRatings[orderId] || 5;
+      const msgInput = document.getElementById(`feedbackMsg_${orderId}`);
+      const mensagemCliente = msgInput ? msgInput.value.trim() : '';
+
+      try {
+        await updateDoc(doc(db, "pedidos", orderId), {
+          estrelas: stars,
+          mensagemCliente,
+          avaliacaoEnviada: true,
+          avaliadoEm: new Date().toISOString()
+        });
+        if (msgInput) msgInput.value = '';
+        delete draftRatings[orderId];
+        showToast('Avaliação enviada! Obrigado.');
+        renderClientOrders();
+      } catch (err) {
+        showToast('Erro ao enviar avaliação: ' + err.message);
+      }
+    };
+
+    function renderClientOrders() {
+      const container = document.getElementById('clientOrdersContainer');
+      const myOrders = allOrders.filter(o => o.clienteId === currentUser.uid);
+
+      if (!myOrders.length) {
+        container.innerHTML = '<p style="text-align:center; color:#64748b; padding:16px;">Você ainda não tem pedidos.</p>';
+        return;
+      }
+
+      container.innerHTML = myOrders.map(ord => {
+        const st = ord.status || 'Novo Pedido';
+        let badgeClass = 'status-badge';
+        if (st.toLowerCase().includes('separando')) badgeClass += ' separando';
+        if (st.toLowerCase().includes('saiu')) badgeClass += ' saiu';
+        if (st.toLowerCase().includes('concluído') || st.toLowerCase().includes('concluido')) badgeClass += ' concluido';
+
+        const selectedStars = draftRatings[ord.id] || 5;
+        const alreadyReviewed = Boolean(ord.avaliacaoEnviada);
+
+        const feedbackSection = alreadyReviewed
+          ? `<div style="margin-top:8px; font-size:0.8rem; color:#0b7a43; font-weight:700;">✅ Avaliação enviada (${ord.estrelas} ★). Obrigado!</div>`
+          : `
+            <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #cbd5e1;">
+              <div style="font-size:0.78rem; font-weight:700;">Avaliar pedido / Enviar mensagem:</div>
+              <div class="stars-row">
+                ${[1, 2, 3, 4, 5].map(n => `
+                  <button type="button" class="star-btn ${n <= selectedStars ? 'selected' : ''}" onclick="selectStar('${ord.id}', ${n})">
+                    ${n <= selectedStars ? '⭐' : '☆'}
+                  </button>
+                `).join('')}
+              </div>
+              <input type="text" id="feedbackMsg_${ord.id}" placeholder="Deixe uma mensagem para o Mercadinho JM..." style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.84rem;" />
+              <button type="button" class="submit-btn" style="padding:9px; font-size:0.86rem;" onclick="submitCustomerFeedback('${ord.id}')">
+                Enviar Avaliação
+              </button>
+            </div>
+          `;
+
+        return `
+          <div class="order-card">
+            <span class="${badgeClass}">${st}</span>
+            <div><strong>Total:</strong> ${formatBRL(ord.total)} • <strong>Pagamento:</strong> ${ord.pagamento || '-'}</div>
+            <div style="font-size:0.78rem; color:#475569; margin-top:3px;">
+              ${(ord.itens || []).map(i => `${i.qtd}x ${i.nome}`).join(', ')}
+            </div>
+            ${feedbackSection}
+          </div>
+        `;
+      }).join('');
+    }
+
+    onSnapshot(query(collection(db, "pedidos"), orderBy("data", "desc")), (snapshot) => {
+      allOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      updateClientNotificationDot();
+
+      if (document.getElementById('adminOrdersPanel').style.display === 'block') {
+        renderAdminOrders();
+      }
+      if (document.getElementById('clientOrdersModal').classList.contains('open')) {
+        renderClientOrders();
+      }
+    });
+
+    window.updateOrderStatus = async (orderId, newStatus) => {
+      try {
+        await updateDoc(doc(db, "pedidos", orderId), {
+          status: newStatus,
+          statusAtualizadoEm: Date.now()
+        });
+        showToast(`Status alterado para: ${newStatus}`);
+        renderAdminOrders();
+      } catch (err) {
+        showToast('Erro ao atualizar status: ' + err.message);
+      }
+    };
+
+    window.deleteOrderByAdmin = async (orderId) => {
+      try {
+        await deleteDoc(doc(db, "pedidos", orderId));
+        showToast('Pedido removido com sucesso.');
+        renderAdminOrders();
+      } catch (err) {
+        showToast('Erro ao apagar pedido: ' + err.message);
+      }
+    };
+
+    function renderAdminOrders() {
+      const container = document.getElementById('ordersListContainer');
+      if (!allOrders.length) {
+        container.innerHTML = '<p style="text-align:center; color:#64748b; padding:16px;">Nenhum pedido recebido ainda.</p>';
+        return;
+      }
+
+      container.innerHTML = allOrders.map(ord => {
+        const st = ord.status || 'Novo Pedido';
+        const isConcluido = st.toLowerCase().includes('concluído') || st.toLowerCase().includes('concluido');
+
+        let badgeClass = 'status-badge';
+        if (st.toLowerCase().includes('separando')) badgeClass += ' separando';
+        if (st.toLowerCase().includes('saiu')) badgeClass += ' saiu';
+        if (isConcluido) badgeClass += ' concluido';
+
+        const resumoItens = (ord.itens || []).map(i => `${i.qtd}x ${i.nome}`).join(', ');
+
+        const ratingDisplay = ord.avaliacaoEnviada
+          ? `<div style="margin-top:6px; padding:6px 8px; background:#ecfdf5; border-radius:8px; font-size:0.8rem;">
+               <strong>Avaliação do cliente:</strong> ${'⭐'.repeat(ord.estrelas || 5)} (${ord.estrelas || 5}/5)
+               ${ord.mensagemCliente ? `<br><em>"${ord.mensagemCliente}"</em>` : ''}
+             </div>`
+          : (isConcluido
+            ? `<div style="margin-top:6px; font-size:0.78rem; color:#64748b;">⏳ Aguardando cliente enviar estrelinhas...</div>`
+            : '');
+
+        return `
+          <div class="order-card">
+            <div class="order-top-row">
+              <span class="${badgeClass}">${st}</span>
+              <button type="button" class="delete-x-btn" title="Apagar pedido" onclick="deleteOrderByAdmin('${ord.id}')">✕</button>
+            </div>
+            <div><strong>Cliente:</strong> ${ord.clienteNome || 'Cliente'}</div>
+            <div><strong>Endereço:</strong> ${ord.endereco || ''} (${ord.referencia || ''})</div>
+            <div><strong>Itens:</strong> ${resumoItens}</div>
+            <div><strong>Pagamento:</strong> ${ord.pagamento || '-'} ${ord.pagamento === 'Dinheiro' ? `(${ord.troco || ''})` : ''}</div>
+            <div><strong>Total:</strong> <strong>${formatBRL(ord.total)}</strong> ${ord.entregaGratis ? '• Entrega Grátis' : ''}</div>
+            ${ratingDisplay}
+            <div class="status-actions">
+              <button type="button" class="status-btn" style="background:#fef3c7; color:#92400e;" onclick="updateOrderStatus('${ord.id}', 'Estamos separando suas compras')">
+                🧺 Separando
+              </button>
+              <button type="button" class="status-btn" style="background:#dcfce7; color:#166534;" onclick="updateOrderStatus('${ord.id}', 'Saiu para entrega')">
+                🛵 Saiu p/ entrega
+              </button>
+              <button type="button" class="status-btn" style="background:#e0e7ff; color:#3730a3;" onclick="updateOrderStatus('${ord.id}', 'Concluído')">
+                ✅ Concluído
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+
+    saveCart();
+  </script>
+</body>
+</html>
