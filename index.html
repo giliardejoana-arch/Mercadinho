@@ -36,18 +36,32 @@
       padding-bottom: 92px;
     }
 
+    .right-account-status-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+
+    .top-account-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
 
     .store-status-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: rgba(255, 255, 255, 0.95);
       color: #065f46;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 0.72rem;
+      padding: 3px 9px;
+      border-radius: 11px;
+      font-size: 0.7rem;
       font-weight: 800;
-      margin-top: 4px;
+      margin-top: 2px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
@@ -57,9 +71,11 @@
     }
 
     .store-hours-sub {
-      font-size: 0.68rem;
-      color: #e2e8f0;
-      margin-top: 2px;
+      font-size: 0.67rem;
+      color: #ecfdf5;
+      font-weight: 600;
+      text-align: right;
+      line-height: 1.15;
     }
 
     .product-card.hidden-item {
@@ -116,6 +132,54 @@
       color: #fff;
     }
 
+    .schedule-trigger-btn {
+      width: 100%;
+      background: #f0fdf4;
+      color: #065f46;
+      border: 1.5px solid #34d399;
+      border-radius: 11px;
+      padding: 11px 12px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .schedule-panel-box {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+    }
+
+    .schedule-panel-box.open {
+      display: block;
+    }
+
+    .schedule-subbox {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .schedule-subbox-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
     .days-selector {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -127,7 +191,7 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      background: #f8fafc;
+      background: #ffffff;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       padding: 6px 8px;
@@ -716,7 +780,6 @@
       border-radius: 12px;
     }
 
-
     .copy-pix-btn {
       margin-top: 10px;
       width: 100%;
@@ -900,27 +963,29 @@
           <div>
             <h1>Mercadinho JM</h1>
             <div class="brand-slogan">O melhor lugar para comprar</div>
-            <div id="storeStatusPill" class="store-status-pill">🟢 Aberto agora</div>
-            <div id="storeHoursSub" class="store-hours-sub">Seg a Dom • 07:00 às 21:00</div>
           </div>
         </div>
-        <div class="header-actions">
-          <div id="adminBadgeBox" class="admin-identity">
-            <span>⚙️</span>
-            <div>
-              <div id="adminFirstNameText">Admin</div>
-              <div class="admin-sub">admin</div>
+        <div class="right-account-status-col">
+          <div class="top-account-row">
+            <div id="adminBadgeBox" class="admin-identity">
+              <span>⚙️</span>
+              <div>
+                <div id="adminFirstNameText">Admin</div>
+                <div class="admin-sub">admin</div>
+              </div>
             </div>
+
+            <button id="clientOrdersBtn" class="icon-btn" onclick="openClientOrdersModal()">
+              <span>📦 Pedidos</span>
+              <span id="clientOrdersDot" class="notify-dot"></span>
+            </button>
+
+            <button id="authHeaderBtn" class="icon-btn" onclick="handleAuthHeaderClick()">
+              👤 Entrar
+            </button>
           </div>
-
-          <button id="clientOrdersBtn" class="icon-btn" onclick="openClientOrdersModal()">
-            <span>📦 Pedidos</span>
-            <span id="clientOrdersDot" class="notify-dot"></span>
-          </button>
-
-          <button id="authHeaderBtn" class="icon-btn" onclick="handleAuthHeaderClick()">
-            👤 Entrar
-          </button>
+          <div id="storeStatusPill" class="store-status-pill">🟢 Aberto • Trabalhando</div>
+          <div id="storeHoursSub" class="store-hours-sub">Seg a Dom • 07:00 às 21:00</div>
         </div>
       </div>
 
@@ -953,7 +1018,7 @@
 
   <!-- CATÁLOGO DE PRODUTOS (2 COLUNAS) -->
   <main class="container">
-    <!-- AVISO DE INSTALAÇÃO APENAS NA PRIMEIRA VEZ -->
+    <!-- AVISO DE INSTALAÇÃO APENAS NA PRIMEIRA VISITA -->
     <div id="installBanner" class="install-banner">
       <div>
         <strong>📲 Instalar Mercadinho JM</strong><br />
@@ -1172,26 +1237,70 @@
         </div>
 
         <div class="form-group">
-          <label>Dias da Semana em Funcionamento</label>
-          <div class="days-selector" id="cfgDaysSelector">
-            <label class="day-check-label"><input type="checkbox" value="1" checked /> Seg</label>
-            <label class="day-check-label"><input type="checkbox" value="2" checked /> Ter</label>
-            <label class="day-check-label"><input type="checkbox" value="3" checked /> Qua</label>
-            <label class="day-check-label"><input type="checkbox" value="4" checked /> Qui</label>
-            <label class="day-check-label"><input type="checkbox" value="5" checked /> Sex</label>
-            <label class="day-check-label"><input type="checkbox" value="6" checked /> Sáb</label>
-            <label class="day-check-label"><input type="checkbox" value="0" checked /> Dom</label>
-          </div>
-        </div>
+          <button type="button" class="schedule-trigger-btn" onclick="toggleScheduleBox()">
+            <span>🗓️ Dias e horários de funcionamento</span>
+            <span id="scheduleBoxArrow">▼</span>
+          </button>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div class="form-group">
-            <label>Abre às</label>
-            <input type="time" id="cfgOpenTime" required value="07:00" />
-          </div>
-          <div class="form-group">
-            <label>Fecha às</label>
-            <input type="time" id="cfgCloseTime" required value="21:00" />
+          <div id="schedulePanelBox" class="schedule-panel-box">
+            <label style="margin-bottom: 6px;">Marque os dias de funcionamento:</label>
+            <div class="days-selector" id="cfgDaysSelector">
+              <label class="day-check-label"><input type="checkbox" value="1" checked /> Seg</label>
+              <label class="day-check-label"><input type="checkbox" value="2" checked /> Ter</label>
+              <label class="day-check-label"><input type="checkbox" value="3" checked /> Qua</label>
+              <label class="day-check-label"><input type="checkbox" value="4" checked /> Qui</label>
+              <label class="day-check-label"><input type="checkbox" value="5" checked /> Sex</label>
+              <label class="day-check-label"><input type="checkbox" value="6" checked /> Sáb</label>
+              <label class="day-check-label"><input type="checkbox" value="0" checked /> Dom</label>
+            </div>
+
+            <div class="schedule-subbox">
+              <div class="schedule-subbox-title">
+                <span>📅 Segunda a Sexta</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 0.76rem;">Abre às</label>
+                  <input type="time" id="cfgOpenTime" required value="07:00" />
+                </div>
+                <div>
+                  <label style="font-size: 0.76rem;">Fecha às</label>
+                  <input type="time" id="cfgCloseTime" required value="21:00" />
+                </div>
+              </div>
+            </div>
+
+            <div class="schedule-subbox">
+              <div class="schedule-subbox-title">
+                <span>🗓️ Sábado (horário diferenciado)</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 0.76rem;">Abre às</label>
+                  <input type="time" id="cfgSatOpenTime" required value="07:00" />
+                </div>
+                <div>
+                  <label style="font-size: 0.76rem;">Fecha às</label>
+                  <input type="time" id="cfgSatCloseTime" required value="12:00" />
+                </div>
+              </div>
+            </div>
+
+            <div class="schedule-subbox">
+              <div class="schedule-subbox-title">
+                <span>☀️ Domingo (horário diferenciado)</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 0.76rem;">Abre às</label>
+                  <input type="time" id="cfgSunOpenTime" required value="07:00" />
+                </div>
+                <div>
+                  <label style="font-size: 0.76rem;">Fecha às</label>
+                  <input type="time" id="cfgSunCloseTime" required value="12:00" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1276,7 +1385,19 @@
       manualStatus: 'auto',
       openDays: [0, 1, 2, 3, 4, 5, 6],
       openTime: '07:00',
-      closeTime: '21:00'
+      closeTime: '21:00',
+      satOpenTime: '07:00',
+      satCloseTime: '12:00',
+      sunOpenTime: '07:00',
+      sunCloseTime: '12:00'
+    };
+
+    window.toggleScheduleBox = () => {
+      const box = document.getElementById('schedulePanelBox');
+      const arrow = document.getElementById('scheduleBoxArrow');
+      if (!box) return;
+      const isOpen = box.classList.toggle('open');
+      if (arrow) arrow.textContent = isOpen ? '▲' : '▼';
     };
 
     function isAdminLoggedIn() {
@@ -1294,6 +1415,25 @@
       return active.map(d => names[d]).join(', ');
     }
 
+    function getDayScheduleTimes(dayIndex) {
+      if (dayIndex === 6) {
+        return {
+          openTime: storeConfig.satOpenTime || storeConfig.openTime || '07:00',
+          closeTime: storeConfig.satCloseTime || storeConfig.closeTime || '12:00'
+        };
+      }
+      if (dayIndex === 0) {
+        return {
+          openTime: storeConfig.sunOpenTime || storeConfig.openTime || '07:00',
+          closeTime: storeConfig.sunCloseTime || storeConfig.closeTime || '12:00'
+        };
+      }
+      return {
+        openTime: storeConfig.openTime || '07:00',
+        closeTime: storeConfig.closeTime || '21:00'
+      };
+    }
+
     function computeStoreOpenState() {
       const mode = storeConfig.manualStatus || 'auto';
       if (mode === 'open') return true;
@@ -1304,8 +1444,9 @@
       const openDays = Array.isArray(storeConfig.openDays) ? storeConfig.openDays : [0, 1, 2, 3, 4, 5, 6];
       if (!openDays.includes(day)) return false;
 
-      const [oh, om] = (storeConfig.openTime || '07:00').split(':').map(Number);
-      const [ch, cm] = (storeConfig.closeTime || '21:00').split(':').map(Number);
+      const dayTimes = getDayScheduleTimes(day);
+      const [oh, om] = dayTimes.openTime.split(':').map(Number);
+      const [ch, cm] = dayTimes.closeTime.split(':').map(Number);
       const nowMins = now.getHours() * 60 + now.getMinutes();
       const openMins = (oh || 0) * 60 + (om || 0);
       const closeMins = (ch || 0) * 60 + (cm || 0);
@@ -1317,26 +1458,50 @@
       }
     }
 
+    function buildScheduleSummaryText() {
+      const days = Array.isArray(storeConfig.openDays) ? storeConfig.openDays : [0, 1, 2, 3, 4, 5, 6];
+      const weekOpenT = storeConfig.openTime || '07:00';
+      const weekCloseT = storeConfig.closeTime || '21:00';
+      const satOpenT = storeConfig.satOpenTime || weekOpenT;
+      const satCloseT = storeConfig.satCloseTime || weekCloseT;
+      const sunOpenT = storeConfig.sunOpenTime || weekOpenT;
+      const sunCloseT = storeConfig.sunCloseTime || weekCloseT;
+
+      const parts = [];
+      const hasWeek = [1, 2, 3, 4, 5].some(d => days.includes(d));
+      if (hasWeek) {
+        const weekNames = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex' };
+        const activeWeek = [1, 2, 3, 4, 5].filter(d => days.includes(d));
+        const wLabel = activeWeek.length === 5 ? 'Seg–Sex' : activeWeek.map(d => weekNames[d]).join(',');
+        parts.push(`${wLabel} ${weekOpenT}–${weekCloseT}`);
+      }
+      if (days.includes(6)) {
+        parts.push(`Sáb ${satOpenT}–${satCloseT}`);
+      }
+      if (days.includes(0)) {
+        parts.push(`Dom ${sunOpenT}–${sunCloseT}`);
+      }
+      return parts.length ? parts.join(' • ') : 'Fechado';
+    }
+
     function updateStoreHoursUI() {
       const pill = document.getElementById('storeStatusPill');
       const sub = document.getElementById('storeHoursSub');
       const closedBanner = document.getElementById('closedWarningBanner');
 
       const isOpen = computeStoreOpenState();
-      const daysLabel = formatOpenDaysText(storeConfig.openDays);
-      const openT = storeConfig.openTime || '07:00';
-      const closeT = storeConfig.closeTime || '21:00';
+      const summary = buildScheduleSummaryText();
 
       if (pill) {
         pill.classList.toggle('closed', !isOpen);
         pill.textContent = isOpen ? '🟢 Aberto • Trabalhando' : '🔴 Fechado no momento';
       }
       if (sub) {
-        sub.textContent = `${daysLabel} • ${openT} às ${closeT}`;
+        sub.textContent = summary;
       }
       if (closedBanner) {
         closedBanner.classList.toggle('show', !isOpen && !isAdminLoggedIn());
-        closedBanner.textContent = `🔴 No momento o Mercadinho JM está fechado. Funcionamento: ${daysLabel}, das ${openT} às ${closeT}.`;
+        closedBanner.textContent = `🔴 No momento o Mercadinho JM está fechado. Funcionamento: ${summary}.`;
       }
       resizeCanvas();
     }
@@ -1641,6 +1806,10 @@
       });
       document.getElementById('cfgOpenTime').value = storeConfig.openTime || '07:00';
       document.getElementById('cfgCloseTime').value = storeConfig.closeTime || '21:00';
+      document.getElementById('cfgSatOpenTime').value = storeConfig.satOpenTime || storeConfig.openTime || '07:00';
+      document.getElementById('cfgSatCloseTime').value = storeConfig.satCloseTime || '12:00';
+      document.getElementById('cfgSunOpenTime').value = storeConfig.sunOpenTime || storeConfig.openTime || '07:00';
+      document.getElementById('cfgSunCloseTime').value = storeConfig.sunCloseTime || '12:00';
 
       document.getElementById('cfgWhatsapp').value = storeConfig.whatsapp || '';
       document.getElementById('cfgPixKey').value = storeConfig.pixKey || '';
@@ -1662,6 +1831,10 @@
       const openDays = Array.from(document.querySelectorAll('#cfgDaysSelector input[type="checkbox"]:checked')).map(cb => Number(cb.value));
       const openTime = document.getElementById('cfgOpenTime').value || '07:00';
       const closeTime = document.getElementById('cfgCloseTime').value || '21:00';
+      const satOpenTime = document.getElementById('cfgSatOpenTime').value || openTime;
+      const satCloseTime = document.getElementById('cfgSatCloseTime').value || '12:00';
+      const sunOpenTime = document.getElementById('cfgSunOpenTime').value || openTime;
+      const sunCloseTime = document.getElementById('cfgSunCloseTime').value || '12:00';
 
       const whatsapp = document.getElementById('cfgWhatsapp').value.replace(/\D/g, '');
       const pixKey = document.getElementById('cfgPixKey').value.trim();
@@ -1678,6 +1851,10 @@
           openDays,
           openTime,
           closeTime,
+          satOpenTime,
+          satCloseTime,
+          sunOpenTime,
+          sunCloseTime,
           whatsapp,
           pixKey,
           pixMerchant,
@@ -1688,9 +1865,7 @@
         storeConfig = { ...storeConfig, ...newCfg };
         updateStoreHoursUI();
         updateShippingBanner();
-        updateStoreHoursUI();
-    setInterval(updateStoreHoursUI, 60000);
-    saveCart();
+        saveCart();
         closeModal('adminModal');
         showToast('Horário, Pix e entrega salvos!');
       } catch (err) {
@@ -2023,9 +2198,7 @@
       if (existing) existing.qtd++;
       else cart.push({ ...prod, qtd: 1 });
 
-      updateStoreHoursUI();
-    setInterval(updateStoreHoursUI, 60000);
-    saveCart();
+      saveCart();
       showToast(`${prod.nome} adicionado!`);
     };
 
@@ -2034,9 +2207,7 @@
       if (!item) return;
       item.qtd += delta;
       if (item.qtd <= 0) cart = cart.filter(i => i.id !== id);
-      updateStoreHoursUI();
-    setInterval(updateStoreHoursUI, 60000);
-    saveCart();
+      saveCart();
       renderCartModal();
     };
 
@@ -2262,9 +2433,7 @@
           : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
         cart = [];
-        updateStoreHoursUI();
-    setInterval(updateStoreHoursUI, 60000);
-    saveCart();
+        saveCart();
         closeModal('cartModal');
         showToast('Pedido salvo! Abrindo WhatsApp do Mercadinho JM...');
         window.open(waUrl, '_blank');
